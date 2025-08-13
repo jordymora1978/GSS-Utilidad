@@ -126,6 +126,28 @@ div[style*="height: 20px"], div[style*="height: 30px"], div[style*="height: 40px
 a[href*="streamlit.io"] {display: none !important;}
 a[href*="github.com"] {display: none !important;}
 a[target="_blank"] {display: none !important;}
+
+/* ELIMINAR ESPECÍFICAMENTE LOS LINKS QUE MENCIONASTE */
+a[href*="share.streamlit.io/user/jordymora1978"] {display: none !important;}
+a[href*="streamlit.io/cloud"] {display: none !important;}
+a[href*="share.streamlit.io"] {display: none !important;}
+
+/* Eliminar botones de deploy/share específicos */
+button[title*="Deploy"] {display: none !important;}
+button[title*="Share"] {display: none !important;}
+button[aria-label*="Deploy"] {display: none !important;}
+button[aria-label*="Share"] {display: none !important;}
+
+/* Eliminar elementos con iconos de compartir/deploy */
+[data-testid*="deploy"] {display: none !important;}
+[data-testid*="share"] {display: none !important;}
+[data-testid*="Deploy"] {display: none !important;}
+[data-testid*="Share"] {display: none !important;}
+
+/* Ocultar elementos que contengan estos textos */
+*:contains("Deploy") {display: none !important;}
+*:contains("Share") {display: none !important;}
+*:contains("share.streamlit.io") {display: none !important;}
 </style>
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
@@ -169,12 +191,32 @@ function ultraRemoveBadges() {
             if (text.includes('made with') || 
                 text.includes('streamlit') || 
                 text.includes('fork') ||
-                text.includes('github')) {
+                text.includes('github') ||
+                text.includes('deploy') ||
+                text.includes('share')) {
                 if (!el.closest('.stApp') && !el.classList.contains('stApp')) {
                     el.style.display = 'none !important';
                     el.remove();
                 }
             }
+        }
+    });
+    
+    // MÉTODO ESPECÍFICO: Eliminar links exactos que mencionaste
+    const specificUrls = [
+        'share.streamlit.io/user/jordymora1978',
+        'streamlit.io/cloud',
+        'share.streamlit.io'
+    ];
+    
+    document.querySelectorAll('a').forEach(link => {
+        if (link.href) {
+            specificUrls.forEach(url => {
+                if (link.href.includes(url)) {
+                    link.style.display = 'none !important';
+                    link.remove();
+                }
+            });
         }
     });
     

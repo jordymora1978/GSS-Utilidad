@@ -8,3 +8,4 @@ supabase>=1.0.0
 plotly>=5.0.0
 matplotlib>=3.7.0
 bcrypt>=4.0.0
+python-dotenv>=1.0.0

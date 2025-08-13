@@ -2,9 +2,16 @@
 Configuración central del sistema contable multipaís
 """
 
-# CONFIGURACIÓN DE SUPABASE (ya la tienes en tu código)
-SUPABASE_URL = "https://pvbzzpeyhhxexyabizbv.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB2Ynp6cGV5aGh4ZXh5YWJpemJ2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1Mzk5Nzk4NywiZXhwIjoyMDY5NTczOTg3fQ.Dv70aki6GF51NwBQ7P9keYqgg9TMiIkkBWVx0ntdil4"
+# CONFIGURACIÓN DE SUPABASE
+import os
+from dotenv import load_dotenv
+
+# Cargar variables de entorno
+load_dotenv()
+
+# Configuración segura desde variables de entorno
+SUPABASE_URL = os.getenv("SUPABASE_URL", "https://pvbzzpeyhhxexyabizbv.supabase.co")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY", "your-key-here")
 
 # MAPEO DE CUENTAS A TIPOS DE UTILIDAD
 ACCOUNT_UTILITY_MAPPING = {

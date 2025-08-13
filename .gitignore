@@ -7,6 +7,8 @@ __pycache__/
 env/
 venv/
 .env
+.env.local
+.env.production
 
 # Archivos de sistema
 .DS_Store
@@ -30,3 +32,15 @@ Thumbs.db
 *.xlsx
 *.xls
 datos_privados/
+
+# Scripts de debug temporales
+debug_*.py
+test_*.py
+fix_*.py
+check_*.py
+
+# Archivos SQL con datos sensibles
+*_users.sql
+simple_*.sql
+disable_*.sql
+force_*.sql

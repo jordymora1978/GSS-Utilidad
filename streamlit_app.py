@@ -94,37 +94,118 @@ footer.stApp {display: none !important;}
 /* Último recurso - ocultar por contenido */
 *:contains("Made with") {display: none !important;}
 *:contains("Streamlit") {display: none !important;}
+
+/* ELIMINACIÓN NUCLEAR DEL BADGE - TODOS LOS MÉTODOS */
+/* Por atributos data */
+[data-testid*="status"] {display: none !important;}
+[data-testid*="Status"] {display: none !important;}
+[data-testid*="badge"] {display: none !important;}
+[data-testid*="Badge"] {display: none !important;}
+
+/* Por clases CSS específicas de versiones */
+.css-1v0mbdj {display: none !important;}
+.css-18e3th9 {display: none !important;}
+.css-1544g2n {display: none !important;}
+.css-k1ih3n {display: none !important;}
+.css-1dp5vir {display: none !important;}
+
+/* Fuerza bruta - cualquier div pequeño en la parte inferior */
+div[style*="position: fixed"][style*="bottom"] {display: none !important;}
+div[style*="position: absolute"][style*="bottom"] {display: none !important;}
+
+/* Eliminar por z-index alto (badges suelen tener z-index alto) */
+*[style*="z-index: 999"] {display: none !important;}
+*[style*="z-index: 1000"] {display: none !important;}
+
+/* Ocultar elementos muy pequeños que podrían ser badges */
+div[style*="height: 20px"], div[style*="height: 30px"], div[style*="height: 40px"] {
+    display: none !important;
+}
+
+/* Eliminar cualquier link externo */
+a[href*="streamlit.io"] {display: none !important;}
+a[href*="github.com"] {display: none !important;}
+a[target="_blank"] {display: none !important;}
 </style>
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-# JavaScript adicional para eliminar badges dinámicamente
+# JavaScript ULTRA agresivo para eliminar badges
 remove_badges_js = """
 <script>
-function removeBadges() {
-    // Buscar y eliminar todos los badges
-    const badges = document.querySelectorAll('[data-testid="stStatusWidget"], .viewerBadge_container__1QSob, [class*="viewerBadge"], [class*="streamlit"], [class*="made-with"]');
-    badges.forEach(badge => {
-        if (badge && !badge.classList.contains('stApp')) {
-            badge.style.display = 'none';
-            badge.remove();
+function ultraRemoveBadges() {
+    // MÉTODO 1: Eliminar por selectores específicos
+    const selectors = [
+        '[data-testid="stStatusWidget"]',
+        '[data-testid="stBottom"]', 
+        '.viewerBadge_container__1QSob',
+        '.viewerBadge_link__1S2v2',
+        '.viewerBadge_text__1JaDK',
+        'div[class*="viewerBadge"]',
+        'div[class*="streamlit"]',
+        'div[class*="StatusWidget"]',
+        '[class*="made-with"]',
+        'footer',
+        '.footer'
+    ];
+    
+    selectors.forEach(selector => {
+        document.querySelectorAll(selector).forEach(el => {
+            if (el && !el.closest('.stApp')) {
+                el.style.display = 'none !important';
+                el.style.visibility = 'hidden !important';
+                el.style.opacity = '0 !important';
+                el.style.height = '0 !important';
+                el.style.overflow = 'hidden !important';
+                el.remove();
+            }
+        });
+    });
+    
+    // MÉTODO 2: Por contenido de texto (más agresivo)
+    document.querySelectorAll('*').forEach(el => {
+        if (el.textContent) {
+            const text = el.textContent.toLowerCase();
+            if (text.includes('made with') || 
+                text.includes('streamlit') || 
+                text.includes('fork') ||
+                text.includes('github')) {
+                if (!el.closest('.stApp') && !el.classList.contains('stApp')) {
+                    el.style.display = 'none !important';
+                    el.remove();
+                }
+            }
         }
     });
     
-    // Eliminar elementos que contengan texto específico
-    const allElements = document.querySelectorAll('*');
-    allElements.forEach(el => {
-        if (el.textContent && (el.textContent.includes('Made with') || el.textContent.includes('Streamlit'))) {
-            if (!el.classList.contains('stApp') && !el.closest('.stApp')) {
-                el.style.display = 'none';
-            }
+    // MÉTODO 3: Eliminar todos los iframes (a veces el badge está ahí)
+    document.querySelectorAll('iframe').forEach(iframe => {
+        if (iframe.src && (iframe.src.includes('streamlit') || iframe.src.includes('github'))) {
+            iframe.remove();
+        }
+    });
+    
+    // MÉTODO 4: Limpiar el DOM completamente del footer
+    const footer = document.querySelector('footer');
+    if (footer) footer.remove();
+    
+    // MÉTODO 5: Ocultar elementos por posición (último recurso)
+    document.querySelectorAll('div').forEach(div => {
+        const rect = div.getBoundingClientRect();
+        if (rect.bottom > window.innerHeight - 100 && div.textContent && 
+            (div.textContent.includes('Made') || div.textContent.includes('Streamlit'))) {
+            div.remove();
         }
     });
 }
 
-// Ejecutar al cargar y cada segundo para elementos dinámicos
-removeBadges();
-setInterval(removeBadges, 1000);
+// Ejecutar inmediatamente y luego cada 500ms
+ultraRemoveBadges();
+setInterval(ultraRemoveBadges, 500);
+
+// También ejecutar cuando el DOM cambie
+const observer = new MutationObserver(ultraRemoveBadges);
+observer.observe(document.body, { childList: true, subtree: true });
 </script>
 """
 st.markdown(remove_badges_js, unsafe_allow_html=True)

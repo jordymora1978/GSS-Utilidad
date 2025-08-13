@@ -19,26 +19,53 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# CSS personalizado para ocultar elementos de Streamlit
+# CSS personalizado para ocultar TODOS los elementos de Streamlit
 hide_streamlit_style = """
 <style>
 /* Ocultar el menú de hamburguesa */
-#MainMenu {visibility: hidden;}
+#MainMenu {visibility: hidden !important;}
 
-/* Ocultar el footer de Streamlit */
-footer {visibility: hidden;}
+/* Ocultar el footer completo */
+footer {visibility: hidden !important;}
+.footer {display: none !important;}
 
-/* Ocultar el header con los links de GitHub/Fork */
-header {visibility: hidden;}
+/* Ocultar el header completo */
+header {visibility: hidden !important;}
+.stHeader {display: none !important;}
 
-/* Ocultar el botón de desplegar la app */
-.stDeployButton {display:none;}
+/* Ocultar toolbar y sus elementos */
+[data-testid="stToolbar"] {display: none !important;}
+.stToolbar {display: none !important;}
 
-/* Ocultar el link "Hosted with Streamlit" */
-.viewerBadge_container__1QSob {display: none;}
+/* Ocultar botones específicos */
+.stDeployButton {display: none !important;}
+.stActionButton {display: none !important;}
 
-/* Ocultar elementos del toolbar */
-[data-testid="stToolbar"] {visibility: hidden;}
+/* Ocultar badges y links de Streamlit */
+.viewerBadge_container__1QSob {display: none !important;}
+.viewerBadge_link__1S2v2 {display: none !important;}
+.viewerBadge_text__1JaDK {display: none !important;}
+
+/* Ocultar elementos del header superior */
+.stApp > header {display: none !important;}
+.stApp > div[data-testid="stHeader"] {display: none !important;}
+
+/* Ocultar el área completa del header */
+section[data-testid="stHeader"] {display: none !important;}
+
+/* Ocultar links específicos */
+a[href*="github"] {display: none !important;}
+a[href*="streamlit"] {display: none !important;}
+
+/* Ocultar el elemento "Fork this app" */
+.css-1dp5vir {display: none !important;}
+
+/* Ocultar marca roja de Streamlit */
+.css-1544g2n {display: none !important;}
+.css-18e3th9 {display: none !important;}
+
+/* Limpiar completamente el header */
+.block-container {padding-top: 1rem !important;}
 </style>
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)

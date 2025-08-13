@@ -1,70 +1,136 @@
-# Sistema Contable Multipaís
+# 🚀 GSS App - Sistema de Gestión
 
-Aplicación web desarrollada en Streamlit para la gestión y análisis de datos contables multi-país.
+Sistema integral de gestión contable para operaciones en múltiples países con capacidades de consolidación automática, gestión de usuarios y reportes avanzados.
 
-## Características
+## ✨ Características Principales
 
-- 📊 **Reportes Unificados**: 7 tipos de reportes diferentes con selector integrado
-- 🌍 **Multi-país**: Soporte para múltiples países y monedas
-- 🎨 **Interfaz Minimalista**: Diseño limpio con componentes nativos de Streamlit
-- 📅 **Filtros de Fecha**: Filtrado inteligente por período (por defecto mes anterior)
-- 🔍 **Análisis Detallado**: Métricas y visualizaciones por país y tipo
+- 🤖 **Sistema Inteligente**: Detecta automáticamente duplicados, actualiza información existente y preserva datos históricos
+- 👥 **Gestión de Usuarios**: Sistema completo con roles, autenticación y logs de actividad
+- 📦 **Consolidación Automática**: Procesa múltiples fuentes de datos simultáneamente
+- 💱 **Gestión TRM**: Administración de tasas de cambio para múltiples países
+- 📊 **Reportes Avanzados**: Generación de reportes de utilidad por país/canal
+- 🛡️ **Seguridad**: Autenticación con bcrypt y variables de entorno
+- 🔄 **Tracking**: Logs automáticos de todas las operaciones de usuarios
 
-## Estructura del Proyecto
+## 🚀 Instalación Rápida
 
-```
-sistema-contable-multipais/
-├── pages/
-│   ├── 1_💼_Consolidador.py
-│   ├── 2_💱_Gestion_TRM.py
-│   └── 3_📊_Reportes.py        # Página principal de reportes
-├── modulos/
-│   └── reportes/               # Módulos de cada reporte
-│       ├── global_co.py
-│       ├── todoencargo_co.py
-│       ├── iservy_co.py
-│       ├── global_ch.py
-│       ├── todoencargo_ch.py
-│       ├── iservy_ch.py
-│       └── global_us.py
-├── main.py                     # Aplicación principal
-└── requirements.txt
-```
+1. **Clona el repositorio:**
+   ```bash
+   git clone https://github.com/jordymora1978/sistema-contable-multipais.git
+   cd sistema-contable-multipais
+   ```
 
-## Configuración Rápida
-
-1. **Instalar dependencias:**
+2. **Instala dependencias:**
    ```bash
    pip install -r requirements.txt
    ```
 
-2. **Iniciar aplicación:**
+3. **Configura variables de entorno:**
    ```bash
-   streamlit run streamlit_app.py
-   # Disponible en http://localhost:8501
+   cp .env.example .env
+   # Edita .env con tus credenciales de Supabase
    ```
 
-## Reportes Disponibles
+4. **Configura la base de datos:**
+   - Ejecuta `setup_users_database.sql` en Supabase SQL Editor
 
-1. **Global Colombia**: Análisis completo Colombia
-2. **Todo Encargo Colombia**: Reportes específicos Colombia
-3. **iServy Colombia**: Datos de iServy Colombia
-4. **Global Chile**: Análisis completo Chile
-5. **Todo Encargo Chile**: Reportes específicos Chile
-6. **iServy Chile**: Datos de iServy Chile
-7. **Global Estados Unidos**: Análisis completo USA
+5. **Ejecuta la aplicación:**
+   ```bash
+   streamlit run streamlit_app.py
+   ```
 
-## Uso
+## 👤 Usuarios por Defecto
 
-1. Navegar a la página **📊 Reportes**
-2. Seleccionar el tipo de reporte del dropdown
-3. Ajustar fechas si es necesario (por defecto: mes anterior)
-4. Ver métricas y análisis generados automáticamente
+| Usuario | Contraseña | Rol | Permisos |
+|---------|------------|-----|----------|
+| `admin` | `admin123` | Administrador | ✅ Acceso completo + gestión usuarios |
+| `alejandro.perez` | `123456` | Usuario | ✅ Consolidador, Reportes, TRM |
 
-## Características Técnicas
+⚠️ **Cambia las contraseñas después del primer login**
 
-- **Framework**: Streamlit
-- **Temas**: Soporte completo para tema claro/oscuro
-- **Componentes**: Solo elementos nativos de Streamlit
-- **Filtrado**: Optimización SQL para mejor rendimiento
-- **Interfaz**: Diseño minimalista sin colores personalizados
+## 🏗️ Estructura del Proyecto
+
+```
+📁 sistema-contable-multipais/
+├── 🚀 streamlit_app.py          # Aplicación principal
+├── 📁 pages/                    # Módulos de la aplicación
+│   ├── 1_📦_Consolidador.py     # Sistema de consolidación
+│   ├── 2_💱_Gestión_TRM.py      # Gestión de tasas
+│   ├── 3_📊_Reportes.py         # Generación de reportes
+│   └── 4_👥_Usuarios.py         # Gestión de usuarios
+├── 📁 modulos/                  # Lógica de negocio
+│   ├── auth.py                  # Sistema de autenticación
+│   ├── gestion_trm.py           # Lógica TRM
+│   └── reportes/                # Módulos de reportes
+├── 🔧 config.py                 # Configuración (con variables de entorno)
+├── 🛡️ SECURITY.md              # Guía de seguridad
+├── 📚 README_USUARIOS.md        # Documentación de usuarios
+└── 🗃️ setup_users_database.sql # Script de configuración DB
+```
+
+## 📦 Módulos Principales
+
+### 🤖 Consolidador Inteligente
+- **Detección automática** de duplicados
+- **Procesamiento simultáneo** de múltiples archivos
+- **Actualización incremental** de datos existentes
+- **Preservación** de información histórica
+- **Soporte para**: Drapify, Logistics, Aditionals, CXP
+
+### 💱 Gestión TRM
+- Administración de **tasas de cambio** por país y fecha
+- **Histórico** de fluctuaciones
+- **Cálculos automáticos** de conversión
+
+### 📊 Reportes Avanzados
+- Reportes de **utilidad por canal**
+- **Análisis por país** y período
+- **Exportación** en múltiples formatos
+- **Dashboards interactivos**
+
+### 👥 Sistema de Usuarios
+- **Roles**: Admin, User, Viewer
+- **Autenticación segura** con bcrypt
+- **Logs de actividad** automáticos
+- **Gestión completa** de usuarios
+
+## 🔒 Seguridad
+
+- ✅ **Credenciales en variables de entorno**
+- ✅ **Autenticación con bcrypt**
+- ✅ **Sesiones seguras con tokens**
+- ✅ **Logs de actividad completos**
+- ✅ **Repositorio privado compatible**
+
+Ver [SECURITY.md](SECURITY.md) para más detalles.
+
+## 🛠️ Tecnologías
+
+- **Frontend**: Streamlit
+- **Backend**: Python 3.13+
+- **Base de Datos**: Supabase (PostgreSQL)
+- **Autenticación**: bcrypt + JWT
+- **Procesamiento**: Pandas, NumPy
+- **Visualización**: Plotly, Matplotlib
+
+## 📖 Documentación Adicional
+
+- [📚 Guía de Usuarios](README_USUARIOS.md) - Gestión completa del sistema de usuarios
+- [🛡️ Guía de Seguridad](SECURITY.md) - Configuración segura y mejores prácticas
+
+## 🚀 Próximas Funcionalidades
+
+- [ ] Dashboard de métricas en tiempo real
+- [ ] Integración con APIs externas
+- [ ] Notificaciones automáticas
+- [ ] Backup automático de datos
+- [ ] App móvil complementaria
+
+## 📞 Soporte
+
+Para reportes de bugs o solicitudes de características, contacta al administrador del sistema.
+
+---
+
+**GSS App v1.0** - Sistema de Gestión Integral de Operaciones
+© 2025 - Todos los derechos reservados

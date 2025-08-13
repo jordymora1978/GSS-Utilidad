@@ -29,7 +29,13 @@ SUPABASE_KEY=tu_key_aqui
 - **Email:** `admin@empresa.com`
 - **Rol:** `admin`
 
-⚠️ **IMPORTANTE:** Cambia esta contraseña después del primer login
+### Usuario de Prueba
+- **Usuario:** `alejandro.perez`
+- **Contraseña:** `123456`
+- **Email:** `alejandro.perez@empresa.com`
+- **Rol:** `user`
+
+⚠️ **IMPORTANTE:** Cambia estas contraseñas después del primer login
 
 ## 🔐 Roles y Permisos
 

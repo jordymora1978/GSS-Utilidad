@@ -64,16 +64,12 @@ CREATE TRIGGER update_users_updated_at
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at_column();
 
--- 7. Usuario administrador inicial (cambiar la contraseña)
--- Contraseña: admin123 (cambiar después del primer login)
-INSERT INTO users (username, email, password_hash, full_name, role) 
-VALUES (
-    'admin', 
-    'admin@empresa.com', 
-    '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewLdoQQGgA8r8F/q', -- admin123
-    'Administrador', 
-    'admin'
-);
+-- 7. Usuarios iniciales (cambiar las contraseñas después del primer login)
+-- admin / admin123
+-- alejandro.perez / 123456
+INSERT INTO users (username, email, password_hash, full_name, role) VALUES 
+('admin', 'admin@empresa.com', '$2b$12$XF4X.lApKUx5RPCbI0cVG.mr4E79JN953FDx5q3rqynnm1CVpaW3m', 'Administrador del Sistema', 'admin'),
+('alejandro.perez', 'alejandro.perez@empresa.com', '$2b$12$IglvZZ3DolYA600xghRTsezbrA.MSUxwyHHcSReIZdjsJGAQoxQ.e', 'Alejandro Pérez', 'user');
 
 -- 8. Comentarios en las tablas
 COMMENT ON TABLE users IS 'Tabla de usuarios del sistema';

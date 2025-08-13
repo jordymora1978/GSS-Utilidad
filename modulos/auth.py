@@ -172,57 +172,72 @@ def require_auth(allowed_roles: list = None):
         st.stop()
 
 def show_login_form():
-    """Mostrar formulario de login compacto"""
+    """Mostrar formulario de login en el sidebar"""
     
-    # Crear columnas para centrar el formulario
-    col1, col2, col3 = st.columns([1, 2, 1])
-    
-    with col2:
-        st.markdown("### 🔐 GSS App - Login")
+    with st.sidebar:
+        st.markdown("### 🔐 Iniciar Sesión")
         
-        with st.container():
-            # CSS para hacer el formulario más compacto
-            st.markdown("""
-            <style>
-            .stTextInput > div > div > input {
-                height: 35px;
-            }
-            .stButton > button {
-                width: 100%;
-                height: 40px;
-                background-color: #FF6B6B;
-                color: white;
-                border: none;
-                border-radius: 5px;
-                font-weight: bold;
-            }
-            </style>
-            """, unsafe_allow_html=True)
+        # CSS para hacer el formulario más compacto en sidebar
+        st.markdown("""
+        <style>
+        .stTextInput > div > div > input {
+            height: 32px;
+            font-size: 14px;
+        }
+        .stButton > button {
+            width: 100%;
+            height: 38px;
+            background-color: #FF6B6B;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .stButton > button:hover {
+            background-color: #FF5252;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
+        with st.form("login_form", clear_on_submit=False):
+            username = st.text_input("👤 Usuario", placeholder="Usuario")
+            password = st.text_input("🔒 Contraseña", type="password", placeholder="Contraseña")
             
-            with st.form("login_form", clear_on_submit=False):
-                username = st.text_input("👤 Usuario", placeholder="Ingresa tu usuario")
-                password = st.text_input("🔒 Contraseña", type="password", placeholder="Ingresa tu contraseña")
-                
-                # Información de usuarios de ejemplo
-                with st.expander("ℹ️ Usuarios de prueba"):
-                    st.markdown("""
-                    **Admin:** `admin` / `admin123`  
-                    **Usuario:** `alejandro.perez` / `123456`
-                    """)
-                
-                submit = st.form_submit_button("🚀 Iniciar Sesión")
-                
-                if submit:
-                    if not username or not password:
-                        st.error("❌ Por favor completa todos los campos")
-                    else:
-                        with st.spinner('Verificando credenciales...'):
-                            result = login_user(username, password)
-                            if result['success']:
-                                st.success(f"✅ {result['message']}")
-                                st.rerun()
-                            else:
-                                st.error(f"❌ {result['message']}")
+            submit = st.form_submit_button("🚀 Entrar")
+            
+            if submit:
+                if not username or not password:
+                    st.error("❌ Completa todos los campos")
+                else:
+                    with st.spinner('Verificando...'):
+                        result = login_user(username, password)
+                        if result['success']:
+                            st.success(f"✅ {result['message']}")
+                            st.rerun()
+                        else:
+                            st.error(f"❌ {result['message']}")
+        
+        # Información de usuarios (más compacta)
+        st.markdown("---")
+        st.markdown("**👥 Usuarios de prueba:**")
+        st.markdown("• `admin` / `admin123`")
+        st.markdown("• `alejandro.perez` / `123456`")
+        
+    # Mensaje principal en el contenido
+    st.info("👈 **Inicia sesión** en el panel lateral para acceder al sistema")
+    st.markdown("---")
+    st.markdown("""
+    ## 🚀 GSS App - Sistema de Gestión
+    
+    **Características principales:**
+    - 📦 **Consolidador**: Procesamiento inteligente de datos
+    - 💱 **Gestión TRM**: Administración de tasas de cambio
+    - 📊 **Reportes**: Análisis y visualización avanzada
+    - 👥 **Usuarios**: Sistema completo de autenticación
+    
+    **Inicia sesión para comenzar** 👈
+    """)
 
 def get_current_user() -> Dict[str, Any]:
     """Obtener información del usuario actual"""

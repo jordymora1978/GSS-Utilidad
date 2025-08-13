@@ -19,6 +19,30 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# CSS personalizado para ocultar elementos de Streamlit
+hide_streamlit_style = """
+<style>
+/* Ocultar el menú de hamburguesa */
+#MainMenu {visibility: hidden;}
+
+/* Ocultar el footer de Streamlit */
+footer {visibility: hidden;}
+
+/* Ocultar el header con los links de GitHub/Fork */
+header {visibility: hidden;}
+
+/* Ocultar el botón de desplegar la app */
+.stDeployButton {display:none;}
+
+/* Ocultar el link "Hosted with Streamlit" */
+.viewerBadge_container__1QSob {display: none;}
+
+/* Ocultar elementos del toolbar */
+[data-testid="stToolbar"] {visibility: hidden;}
+</style>
+"""
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
 # Función para verificar conexión a Supabase
 def check_database_connection():
     """Verifica la conexión a Supabase"""

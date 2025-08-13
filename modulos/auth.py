@@ -172,24 +172,57 @@ def require_auth(allowed_roles: list = None):
         st.stop()
 
 def show_login_form():
-    """Mostrar formulario de login"""
-    st.title("🔐 Iniciar Sesión")
+    """Mostrar formulario de login compacto"""
     
-    with st.form("login_form"):
-        username = st.text_input("👤 Usuario")
-        password = st.text_input("🔒 Contraseña", type="password")
-        submit = st.form_submit_button("🚀 Iniciar Sesión")
+    # Crear columnas para centrar el formulario
+    col1, col2, col3 = st.columns([1, 2, 1])
+    
+    with col2:
+        st.markdown("### 🔐 GSS App - Login")
         
-        if submit:
-            if not username or not password:
-                st.error("❌ Por favor completa todos los campos")
-            else:
-                result = login_user(username, password)
-                if result['success']:
-                    st.success(f"✅ {result['message']}")
-                    st.rerun()
-                else:
-                    st.error(f"❌ {result['message']}")
+        with st.container():
+            # CSS para hacer el formulario más compacto
+            st.markdown("""
+            <style>
+            .stTextInput > div > div > input {
+                height: 35px;
+            }
+            .stButton > button {
+                width: 100%;
+                height: 40px;
+                background-color: #FF6B6B;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                font-weight: bold;
+            }
+            </style>
+            """, unsafe_allow_html=True)
+            
+            with st.form("login_form", clear_on_submit=False):
+                username = st.text_input("👤 Usuario", placeholder="Ingresa tu usuario")
+                password = st.text_input("🔒 Contraseña", type="password", placeholder="Ingresa tu contraseña")
+                
+                # Información de usuarios de ejemplo
+                with st.expander("ℹ️ Usuarios de prueba"):
+                    st.markdown("""
+                    **Admin:** `admin` / `admin123`  
+                    **Usuario:** `alejandro.perez` / `123456`
+                    """)
+                
+                submit = st.form_submit_button("🚀 Iniciar Sesión")
+                
+                if submit:
+                    if not username or not password:
+                        st.error("❌ Por favor completa todos los campos")
+                    else:
+                        with st.spinner('Verificando credenciales...'):
+                            result = login_user(username, password)
+                            if result['success']:
+                                st.success(f"✅ {result['message']}")
+                                st.rerun()
+                            else:
+                                st.error(f"❌ {result['message']}")
 
 def get_current_user() -> Dict[str, Any]:
     """Obtener información del usuario actual"""

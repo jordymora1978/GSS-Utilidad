@@ -13,8 +13,8 @@ except ImportError:
 
 # IMPORTANTE: Configuración de página DEBE IR PRIMERO
 st.set_page_config(
-    page_title="Sistema Contable Multipaís",
-    page_icon="💼",
+    page_title="GSS App - Sistema de Gestión",
+    page_icon="🚀",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -83,7 +83,7 @@ else:
 
 # Crear navegación en el sidebar
 with st.sidebar:
-    st.title("📋 Sistema Contable")
+    st.title("🚀 GSS App")
     st.markdown("---")
     
     # Mostrar info del usuario si está logueado
@@ -98,9 +98,9 @@ with st.sidebar:
         menu_items.extend(["👥 Usuarios", "🔄 Corrector de Valores", "🔍 Debug CXP", "🚀 Actualizar TODOS CXP", "⚠️ Eliminar y Recargar"])
     
     pagina = st.selectbox(
-        "🔍 Selecciona un módulo:",
+        "Navegación:",
         menu_items,
-        label_visibility="visible"
+        label_visibility="hidden"
     )
     
     st.markdown("---")
@@ -128,20 +128,20 @@ with st.sidebar:
     st.markdown("---")
     
     # Información adicional
-    st.caption("**Sistema Contable Multipaís**")
+    st.caption("**GSS App**")
     st.caption("Versión 1.0 - 2025")
     st.caption("© Todos los derechos reservados")
 
 # NAVEGACIÓN PRINCIPAL
 if pagina == "🏠 Inicio":
     # PÁGINA DE INICIO
-    st.title("💼 Sistema Contable Multipaís")
+    st.title("🚀 GSS App - Sistema de Gestión")
     st.markdown("### Panel de Control Principal")
     st.markdown("---")
     
     # Mensaje de bienvenida
     st.markdown("""
-    Bienvenido al **Sistema Contable Multipaís**, una plataforma integral para la gestión 
+    Bienvenido a **GSS App**, una plataforma integral para la gestión 
     de órdenes, tasas de cambio y reportes de utilidad para operaciones en múltiples países.
     """)
     
@@ -161,11 +161,12 @@ if pagina == "🏠 Inicio":
             - Aditionals (Costos extra)
             - CXP (Cuentas por pagar)
             
-            **Características:**
-            - ✅ Detección de duplicados
-            - ✅ Actualización incremental
-            - ✅ Validación automática
-            - ✅ Logs de procesamiento
+            **🧠 Sistema Inteligente:**
+            • Detecta automáticamente duplicados
+            • Actualiza información existente
+            • Agrega nuevos registros
+            • Preserva datos históricos
+            • Sin pérdida de información
             """)
     
     with col2:
@@ -425,4 +426,4 @@ elif pagina == "⚠️ Eliminar y Recargar":
 
 # Footer global
 st.markdown("---")
-st.caption("Sistema Contable Multipaís | Desarrollado para gestión integral de operaciones")
+st.caption("GSS App | Sistema de Gestión Integral de Operaciones")

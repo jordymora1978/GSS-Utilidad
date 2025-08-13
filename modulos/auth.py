@@ -218,11 +218,8 @@ def show_login_form():
                         else:
                             st.error(f"❌ {result['message']}")
         
-        # Información de usuarios (más compacta)  
+        # Separador visual
         st.markdown("---")
-        st.markdown("**👥 Usuarios de prueba:**")
-        st.text("• admin / admin123")
-        st.text("• alejandro.perez / 123456")
         
     # Mensaje principal en el contenido
     st.info("👈 **Inicia sesión** en el panel lateral para acceder al sistema")

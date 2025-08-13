@@ -41,21 +41,33 @@ if AUTH_AVAILABLE:
     except:
         pass
 
-# Configuración de Supabase con credenciales integradas
+# Configuración de Supabase usando config.py
 @st.cache_resource
 def init_supabase():
-    url = "https://pvbzzpeyhhxexyabizbv.supabase.co"
-    key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB2Ynp6cGV5aGh4ZXh5YWJpemJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM5OTc5ODcsImV4cCI6MjA2OTU3Mzk4N30.06S8jDjNReAd6Oj8AZvOS2PUcO2ASJHVA3VUNYVeAR4"
-    return create_client(url, key)
+    try:
+        import config
+        return create_client(config.SUPABASE_URL, config.SUPABASE_KEY)
+    except Exception as e:
+        st.error(f"Error conectando a Supabase: {e}")
+        return None
 
 supabase = init_supabase()
 
 # Test de conexión al inicio
-try:
-    test_result = supabase.table('consolidated_orders').select('id').limit(1).execute()
-    st.sidebar.success("✅ Conectado a Supabase")
-except Exception as e:
-    st.sidebar.error(f"❌ Error de conexión: {str(e)}")
+if supabase:
+    try:
+        test_result = supabase.table('consolidated_orders').select('id').limit(1).execute()
+        st.sidebar.success("✅ Conectado a Supabase")
+    except Exception as e:
+        # Si no existe consolidated_orders, intentar con users
+        try:
+            test_result = supabase.table('users').select('id').limit(1).execute()
+            st.sidebar.success("✅ Conectado a Supabase")
+        except:
+            st.sidebar.error(f"❌ Error de conexión: {str(e)}")
+else:
+    st.error("❌ No se pudo conectar a la base de datos")
+    st.stop()
 
 # =====================================================
 # FUNCIONES DE FORMATO Y LIMPIEZA

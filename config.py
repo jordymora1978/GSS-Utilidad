@@ -6,12 +6,19 @@ Configuración central del sistema contable multipaís
 import os
 from dotenv import load_dotenv
 
-# Cargar variables de entorno
+# Cargar variables de entorno para desarrollo local
 load_dotenv()
 
-# Configuración segura desde variables de entorno
-SUPABASE_URL = os.getenv("SUPABASE_URL", "https://pvbzzpeyhhxexyabizbv.supabase.co")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY", "your-key-here")
+# Configuración compatible con Streamlit Cloud y desarrollo local
+try:
+    # Para Streamlit Cloud (usa st.secrets)
+    import streamlit as st
+    SUPABASE_URL = st.secrets.get("SUPABASE_URL", os.getenv("SUPABASE_URL", "https://pvbzzpeyhhxexyabizbv.supabase.co"))
+    SUPABASE_KEY = st.secrets.get("SUPABASE_KEY", os.getenv("SUPABASE_KEY", "your-key-here"))
+except ImportError:
+    # Para desarrollo local (usa .env)
+    SUPABASE_URL = os.getenv("SUPABASE_URL", "https://pvbzzpeyhhxexyabizbv.supabase.co")
+    SUPABASE_KEY = os.getenv("SUPABASE_KEY", "your-key-here")
 
 # MAPEO DE CUENTAS A TIPOS DE UTILIDAD
 ACCOUNT_UTILITY_MAPPING = {

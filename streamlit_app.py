@@ -66,9 +66,68 @@ a[href*="streamlit"] {display: none !important;}
 
 /* Limpiar completamente el header */
 .block-container {padding-top: 1rem !important;}
+
+/* ELIMINACIÓN AGRESIVA DEL BADGE INFERIOR */
+/* Todos los posibles selectores para el badge "Made with Streamlit" */
+[data-testid="stBottom"] {display: none !important;}
+.streamlit-footer {display: none !important;}
+.footer {display: none !important;}
+div[data-testid="stStatusWidget"] {display: none !important;}
+.StatusWidget {display: none !important;}
+
+/* Selectores adicionales para badges */
+div[class*="viewerBadge"] {display: none !important;}
+div[class*="made-with-streamlit"] {display: none !important;}
+div[class*="streamlit-badge"] {display: none !important;}
+
+/* Ocultar cualquier elemento que contenga "streamlit" */
+*[class*="streamlit"]:not(.stApp):not([data-testid]) {display: none !important;}
+
+/* Footer positioning fix */
+.main .block-container {padding-bottom: 1rem !important;}
+
+/* Remover completamente el área del footer */
+.stApp > footer {display: none !important;}
+.stApp footer {display: none !important;}
+footer.stApp {display: none !important;}
+
+/* Último recurso - ocultar por contenido */
+*:contains("Made with") {display: none !important;}
+*:contains("Streamlit") {display: none !important;}
 </style>
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
+# JavaScript adicional para eliminar badges dinámicamente
+remove_badges_js = """
+<script>
+function removeBadges() {
+    // Buscar y eliminar todos los badges
+    const badges = document.querySelectorAll('[data-testid="stStatusWidget"], .viewerBadge_container__1QSob, [class*="viewerBadge"], [class*="streamlit"], [class*="made-with"]');
+    badges.forEach(badge => {
+        if (badge && !badge.classList.contains('stApp')) {
+            badge.style.display = 'none';
+            badge.remove();
+        }
+    });
+    
+    // Eliminar elementos que contengan texto específico
+    const allElements = document.querySelectorAll('*');
+    allElements.forEach(el => {
+        if (el.textContent && (el.textContent.includes('Made with') || el.textContent.includes('Streamlit'))) {
+            if (!el.classList.contains('stApp') && !el.closest('.stApp')) {
+                el.style.display = 'none';
+            }
+        }
+    });
+}
+
+// Ejecutar al cargar y cada segundo para elementos dinámicos
+removeBadges();
+setInterval(removeBadges, 1000);
+</script>
+"""
+st.markdown(remove_badges_js, unsafe_allow_html=True)
 
 # Función para verificar conexión a Supabase
 def check_database_connection():

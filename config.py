@@ -12,7 +12,7 @@ load_dotenv()
 # Configuración segura desde variables de entorno y Streamlit secrets
 # Usar pqlvmxnhztajoxkwyuoh para consistencia con Streamlit Cloud
 SUPABASE_URL = os.getenv("SUPABASE_URL", "https://pqlvmxnhztajoxkwyuoh.supabase.co")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY", "your-key-here")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB2Ynp6cGV5aGh4ZXh5YWJpemJ2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1Mzk5Nzk4NywiZXhwIjoyMDY5NTczOTg3fQ.Dv70aki6GF51NwBQ7P9keYqgg9TMiIkkBWVx0ntdil4")
 
 # Para Streamlit Cloud - solo si está disponible
 try:

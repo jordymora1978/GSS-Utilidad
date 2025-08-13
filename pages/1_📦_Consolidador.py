@@ -10,6 +10,17 @@ import time
 import re
 import hashlib
 import math
+import sys
+
+# Agregar la carpeta raíz al path para importar módulos
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Importar sistema de autenticación
+try:
+    from modulos.auth import require_auth, log_activity, show_user_info, get_current_user
+    AUTH_AVAILABLE = True
+except ImportError:
+    AUTH_AVAILABLE = False
 
 # Configuración de la página
 st.set_page_config(
@@ -822,6 +833,11 @@ def insert_or_update_to_supabase(df, filename=None, logistics_matched=0, adition
             
             progress_bar.progress(1.0)
             st.success(f"✅ {total_inserted} registros nuevos insertados")
+            
+            # Log de actividad
+            if AUTH_AVAILABLE:
+                log_activity("process_data", f"Consolidación completa procesada: {total_inserted} registros insertados", 
+                           "consolidation", None, total_inserted)
         
         if update_records:
             st.info(f"🔄 Actualizando {len(update_records)} registros existentes...")
@@ -1567,6 +1583,11 @@ def update_cxp_only(cxp_df):
 # =====================================================
 
 def main():
+    # Verificar autenticación si está disponible
+    if AUTH_AVAILABLE:
+        require_auth()
+        show_user_info()
+    
     st.title("📦 Consolidador de Órdenes")
     st.markdown("### Sistema Modular de Consolidación de Datos")
     
@@ -1726,6 +1747,11 @@ def main():
                         drapify_df = pd.read_excel(drapify_file)
                     st.success(f"✅ Drapify cargado: {len(drapify_df)} registros")
                     
+                    # Log de actividad
+                    if AUTH_AVAILABLE:
+                        log_activity("upload_file", f"Archivo Drapify procesado", 
+                                   "drapify", drapify_file.name, len(drapify_df))
+                    
                     # Leer otros archivos si están disponibles
                     logistics_df = None
                     if logistics_file:
@@ -1734,6 +1760,11 @@ def main():
                         else:
                             logistics_df = pd.read_excel(logistics_file)
                         st.success(f"✅ Logistics cargado: {len(logistics_df)} registros")
+                        
+                        # Log de actividad
+                        if AUTH_AVAILABLE:
+                            log_activity("upload_file", f"Archivo Logistics procesado", 
+                                       "logistics", logistics_file.name, len(logistics_df))
                     
                     aditionals_df = None
                     if aditionals_file:
@@ -1742,6 +1773,11 @@ def main():
                         else:
                             aditionals_df = pd.read_excel(aditionals_file)
                         st.success(f"✅ Aditionals cargado: {len(aditionals_df)} registros")
+                        
+                        # Log de actividad
+                        if AUTH_AVAILABLE:
+                            log_activity("upload_file", f"Archivo Aditionals procesado", 
+                                       "aditionals", aditionals_file.name, len(aditionals_df))
                     
                     cxp_df = None
                     if cxp_file:
@@ -1750,6 +1786,11 @@ def main():
                         else:
                             cxp_df = pd.read_excel(cxp_file)
                         st.success(f"✅ CXP cargado: {len(cxp_df)} registros")
+                        
+                        # Log de actividad
+                        if AUTH_AVAILABLE:
+                            log_activity("upload_file", f"Archivo CXP procesado", 
+                                       "cxp", cxp_file.name, len(cxp_df))
                     
                     # Procesar consolidación completa
                     logistics_date = st.session_state.get('logistics_date') if logistics_file else None

@@ -4,6 +4,13 @@ from datetime import datetime, timedelta
 import sys
 import os
 
+# Importar sistema de autenticación
+try:
+    from modulos.auth import is_logged_in, show_login_form, get_current_user, show_user_info
+    AUTH_AVAILABLE = True
+except ImportError:
+    AUTH_AVAILABLE = False
+
 # IMPORTANTE: Configuración de página DEBE IR PRIMERO
 st.set_page_config(
     page_title="Sistema Contable Multipaís",
@@ -65,15 +72,34 @@ def get_database_stats():
     except Exception as e:
         return None
 
+# Verificar autenticación
+if AUTH_AVAILABLE:
+    if not is_logged_in():
+        show_login_form()
+        st.stop()
+else:
+    # Debug: Sistema sin autenticación
+    st.warning("⚠️ Sistema ejecutándose sin autenticación (modo debug)")
+
 # Crear navegación en el sidebar
 with st.sidebar:
     st.title("📋 Sistema Contable")
     st.markdown("---")
     
+    # Mostrar info del usuario si está logueado
+    if AUTH_AVAILABLE and is_logged_in():
+        show_user_info()
+    
     # Menú de navegación
+    menu_items = ["🏠 Inicio", "📦 Consolidador", "💱 Gestión TRM", "📊 Reportes"]
+    
+    # Solo admins pueden ver gestión de usuarios
+    if AUTH_AVAILABLE and is_logged_in() and get_current_user().get('role') == 'admin':
+        menu_items.extend(["👥 Usuarios", "🔄 Corrector de Valores", "🔍 Debug CXP", "🚀 Actualizar TODOS CXP", "⚠️ Eliminar y Recargar"])
+    
     pagina = st.selectbox(
         "🔍 Selecciona un módulo:",
-        ["🏠 Inicio", "📦 Consolidador", "💱 Gestión TRM", "📊 Reportes", "🔄 Corrector de Valores", "🔍 Debug CXP", "🚀 Actualizar TODOS CXP", "⚠️ Eliminar y Recargar"],
+        menu_items,
         label_visibility="visible"
     )
     
@@ -255,6 +281,17 @@ elif pagina == "📊 Reportes":
         # Verificar si el archivo existe
         if os.path.exists('pages/3_📊_Reportes.py'):
             exec(open('pages/3_📊_Reportes.py', encoding='utf-8').read())
+        else:
+            st.error("❌ Archivo de reportes no encontrado")
+    except Exception as e:
+        st.error(f"❌ Error cargando reportes: {e}")
+
+elif pagina == "👥 Usuarios":
+    # CARGAR PÁGINA DE USUARIOS
+    try:
+        # Verificar si el archivo existe
+        if os.path.exists('pages/4_👥_Usuarios.py'):
+            exec(open('pages/4_👥_Usuarios.py', encoding='utf-8').read())
         else:
             # Si no existe, mostrar versión básica
             st.title("📊 Módulo de Reportes de Utilidad")

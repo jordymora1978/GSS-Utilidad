@@ -9,16 +9,19 @@ from dotenv import load_dotenv
 # Cargar variables de entorno para desarrollo local
 load_dotenv()
 
-# Configuración compatible con Streamlit Cloud y desarrollo local
+# Configuración segura desde variables de entorno y Streamlit secrets
+SUPABASE_URL = os.getenv("SUPABASE_URL", "https://pvbzzpeyhhxexyabizbv.supabase.co")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY", "your-key-here")
+
+# Para Streamlit Cloud - solo si está disponible
 try:
-    # Para Streamlit Cloud (usa st.secrets)
     import streamlit as st
-    SUPABASE_URL = st.secrets.get("SUPABASE_URL", os.getenv("SUPABASE_URL", "https://pvbzzpeyhhxexyabizbv.supabase.co"))
-    SUPABASE_KEY = st.secrets.get("SUPABASE_KEY", os.getenv("SUPABASE_KEY", "your-key-here"))
-except ImportError:
-    # Para desarrollo local (usa .env)
-    SUPABASE_URL = os.getenv("SUPABASE_URL", "https://pvbzzpeyhhxexyabizbv.supabase.co")
-    SUPABASE_KEY = os.getenv("SUPABASE_KEY", "your-key-here")
+    if hasattr(st, 'secrets'):
+        SUPABASE_URL = st.secrets.get("SUPABASE_URL", SUPABASE_URL)
+        SUPABASE_KEY = st.secrets.get("SUPABASE_KEY", st.secrets.get("SUPABASE_ANON_KEY", SUPABASE_KEY))
+except:
+    # En caso de error, usar variables de entorno
+    pass
 
 # MAPEO DE CUENTAS A TIPOS DE UTILIDAD
 ACCOUNT_UTILITY_MAPPING = {

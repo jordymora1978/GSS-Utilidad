@@ -245,9 +245,59 @@ function ultraRemoveBadges() {
 ultraRemoveBadges();
 setInterval(ultraRemoveBadges, 500);
 
+// FUERZA BRUTA ABSOLUTA - Inspección DOM cada 100ms
+setInterval(() => {
+    // Eliminar CUALQUIER elemento que contenga "streamlit" en href
+    document.querySelectorAll('a[href]').forEach(link => {
+        if (link.href.includes('streamlit')) {
+            console.log('Destroying Streamlit link:', link.href);
+            link.parentNode && link.parentNode.removeChild(link);
+        }
+    });
+    
+    // Eliminar elementos por texto visible
+    document.querySelectorAll('*').forEach(el => {
+        const text = el.innerText || el.textContent || '';
+        if (text.includes('Made with') || text.includes('Deploy') || text.includes('Share')) {
+            if (el.tagName !== 'BODY' && el.tagName !== 'HTML' && !el.classList.contains('stApp')) {
+                console.log('Destroying text element:', text.substring(0, 50));
+                el.style.display = 'none !important';
+                el.remove();
+            }
+        }
+    });
+    
+    // Eliminar por posición (elementos en esquinas)
+    document.querySelectorAll('div, a, button').forEach(el => {
+        const rect = el.getBoundingClientRect();
+        const style = window.getComputedStyle(el);
+        
+        // Si está posicionado en esquinas con position fixed/absolute
+        if ((style.position === 'fixed' || style.position === 'absolute') && 
+            (rect.top < 100 || rect.bottom > window.innerHeight - 100) &&
+            (rect.right > window.innerWidth - 200 || rect.left < 200)) {
+            
+            const text = el.innerText || el.textContent || '';
+            if (text.length < 100 && (el.tagName === 'A' || el.href)) {
+                console.log('Destroying corner element:', el);
+                el.remove();
+            }
+        }
+    });
+}, 100);
+
 // También ejecutar cuando el DOM cambie
 const observer = new MutationObserver(ultraRemoveBadges);
 observer.observe(document.body, { childList: true, subtree: true });
+
+// CSS adicional inyectado dinámicamente
+const style = document.createElement('style');
+style.innerHTML = `
+    a[href*="streamlit"] { display: none !important; visibility: hidden !important; opacity: 0 !important; }
+    *[href*="share.streamlit.io"] { display: none !important; }
+    button[title*="Deploy"], button[title*="Share"] { display: none !important; }
+`;
+document.head.appendChild(style);
 </script>
 """
 st.markdown(remove_badges_js, unsafe_allow_html=True)

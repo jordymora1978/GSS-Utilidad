@@ -46,7 +46,10 @@ Sistema integral de gestión contable para operaciones en múltiples países con
 | `admin` | `admin123` | Administrador | ✅ Acceso completo + gestión usuarios |
 | `alejandro.perez` | `123456` | Usuario | ✅ Consolidador, Reportes, TRM |
 
-⚠️ **Cambia las contraseñas después del primer login**
+⚠️ **Importante:** 
+- Los usuarios se crean ejecutando `setup_users_database.sql` en **tu Supabase**
+- **NO están en el repositorio** por seguridad
+- Cambia las contraseñas después del primer login
 
 ## 🏗️ Estructura del Proyecto
 

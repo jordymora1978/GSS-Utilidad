@@ -1,3 +1,4 @@
+# Actualizado: 2025-01-13 - Corrección de error en archivo Logistics
 import streamlit as st
 import pandas as pd
 import numpy as np

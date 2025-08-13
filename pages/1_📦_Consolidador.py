@@ -30,6 +30,17 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Verificar autenticación PRIMERO
+if AUTH_AVAILABLE:
+    try:
+        from modulos.auth import is_logged_in, show_login_form
+        if not is_logged_in():
+            st.error("⛔ Debes iniciar sesión para acceder a esta página")
+            show_login_form()
+            st.stop()
+    except:
+        pass
+
 # Configuración de Supabase con credenciales integradas
 @st.cache_resource
 def init_supabase():

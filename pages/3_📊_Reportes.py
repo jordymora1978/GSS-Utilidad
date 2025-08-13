@@ -20,6 +20,16 @@ st.set_page_config(
     layout="wide"
 )
 
+# Verificar autenticación
+try:
+    from modulos.auth import is_logged_in, show_login_form
+    if not is_logged_in():
+        st.error("⛔ Debes iniciar sesión para acceder a esta página")
+        show_login_form()
+        st.stop()
+except ImportError:
+    st.warning("⚠️ Sistema de autenticación no disponible")
+
 # Lista de reportes disponibles
 REPORTES = {
     "📦 TodoEncargo Colombia": "todoencargo_co",

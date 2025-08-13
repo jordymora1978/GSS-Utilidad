@@ -7,14 +7,14 @@ import sys
 
 def verify_setup():
     """Verificar configuración del sistema"""
-    print("🔍 GSS App - Verificación de Configuración")
+    print("GSS App - Verificacion de Configuracion")
     print("=" * 50)
     
     issues = []
     
     # 1. Verificar .env
     if os.path.exists('.env'):
-        print("✅ Archivo .env encontrado")
+        print("OK - Archivo .env encontrado")
         try:
             with open('.env', 'r') as f:
                 content = f.read()

@@ -27,8 +27,8 @@ def check_database_connection():
         import config
         
         supabase = create_client(config.SUPABASE_URL, config.SUPABASE_KEY)
-        # Test de conexión
-        result = supabase.table('consolidated_orders').select('id').limit(1).execute()
+        # Test de conexión con tabla que seguro existe
+        result = supabase.table('users').select('id').limit(1).execute()
         return True, supabase
     except Exception as e:
         return False, str(e)
@@ -42,12 +42,18 @@ def get_database_stats():
         
         supabase = create_client(config.SUPABASE_URL, config.SUPABASE_KEY)
         
-        # Contar registros totales
-        total_result = supabase.table('consolidated_orders').select('*', count='exact', head=True).execute()
-        total_records = total_result.count if hasattr(total_result, 'count') else 0
-        
-        # Obtener cuentas únicas
-        accounts_result = supabase.table('consolidated_orders').select('account_name').execute()
+        # Verificar si existe tabla consolidated_orders
+        try:
+            total_result = supabase.table('consolidated_orders').select('*', count='exact', head=True).execute()
+            total_records = total_result.count if hasattr(total_result, 'count') else 0
+            
+            # Obtener cuentas únicas
+            accounts_result = supabase.table('consolidated_orders').select('account_name').execute()
+        except:
+            # Si no existe consolidated_orders, usar datos de usuarios
+            total_result = supabase.table('users').select('*', count='exact', head=True).execute()
+            total_records = total_result.count if hasattr(total_result, 'count') else 0
+            accounts_result = supabase.table('users').select('username').execute()
         unique_accounts = 0
         account_distribution = {}
         

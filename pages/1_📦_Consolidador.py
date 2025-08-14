@@ -1759,11 +1759,11 @@ def main():
             col_date1, col_date2, col_date3 = st.columns(3)
             
             with col_date1:
-                if st.button("📅 Hoy"):
+                if st.button("📅 Hoy", type="primary"):
                     st.session_state.logistics_date = datetime.now().date()
             
             with col_date2:
-                if st.button("📅 Ayer"):
+                if st.button("📅 Ayer", type="primary"):
                     st.session_state.logistics_date = (datetime.now() - timedelta(days=1)).date()
             
             with col_date3:

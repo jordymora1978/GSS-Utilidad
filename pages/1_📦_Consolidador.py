@@ -545,11 +545,35 @@ def process_files_according_to_rules(drapify_df, logistics_df=None, aditionals_d
         st.info("➕ Procesando archivo Aditionals...")
         st.caption("🔗 Conexión: Order Id = prealert_id (NO order_id)")
         
+        # Crear diccionario para sumar múltiples filas del mismo Order Id
         aditionals_dict = {}
         for idx, row in aditionals_df.iterrows():
             order_id = clean_id_aggressive(row.get('Order Id', ''))
             if order_id:
-                aditionals_dict[order_id] = row
+                if order_id not in aditionals_dict:
+                    # Primera vez que vemos este order_id - crear entrada nueva
+                    aditionals_dict[order_id] = {
+                        'Order Id': order_id,
+                        'Item': row.get('Item', ''),
+                        'Reference': row.get('Reference', ''),
+                        'Description': row.get('Description', ''),
+                        'Quantity': float(row.get('Quantity', 0)) if pd.notnull(row.get('Quantity')) else 0,
+                        'UnitPrice': float(row.get('UnitPrice', 0)) if pd.notnull(row.get('UnitPrice')) else 0,
+                        'Total': float(row.get('Total', 0)) if pd.notnull(row.get('Total')) else 0
+                    }
+                else:
+                    # Ya existe este order_id - sumar los valores numéricos
+                    existing = aditionals_dict[order_id]
+                    existing['Quantity'] += float(row.get('Quantity', 0)) if pd.notnull(row.get('Quantity')) else 0
+                    existing['UnitPrice'] += float(row.get('UnitPrice', 0)) if pd.notnull(row.get('UnitPrice')) else 0
+                    existing['Total'] += float(row.get('Total', 0)) if pd.notnull(row.get('Total')) else 0
+                    # Para campos de texto, mantener el primero (o concatenar si prefieres)
+                    if not existing['Item'] and row.get('Item'):
+                        existing['Item'] = row.get('Item', '')
+                    if not existing['Reference'] and row.get('Reference'):
+                        existing['Reference'] = row.get('Reference', '')
+                    if not existing['Description'] and row.get('Description'):
+                        existing['Description'] = row.get('Description', '')
         
         
         aditionals_columns = ['Order Id', 'Item', 'Reference', 'Description', 'Quantity', 'UnitPrice', 'Total']
@@ -571,7 +595,15 @@ def process_files_according_to_rules(drapify_df, logistics_df=None, aditionals_d
                     if col in aditionals_df.columns:
                         consolidated_df.loc[idx, f'aditionals_{col.lower().replace(" ", "_")}'] = aditionals_row.get(col)
         
-        st.success(f"✅ Aditionals procesado: {matched_aditionals} matches por prealert_id")
+        # Contar cuántos Order Id tenían múltiples filas
+        total_rows = len(aditionals_df)
+        unique_orders = len(aditionals_dict)
+        multiple_rows = total_rows - unique_orders
+        
+        if multiple_rows > 0:
+            st.info(f"ℹ️ Se encontraron {multiple_rows} filas duplicadas que fueron sumadas automáticamente")
+        
+        st.success(f"✅ Aditionals procesado: {matched_aditionals} matches por prealert_id (de {unique_orders} Order Id únicos procesados)")
     
     # PASO 4: Calcular columna Asignacion
     st.info("🏷️ Calculando columna Asignacion...")
@@ -1149,13 +1181,37 @@ def update_aditionals_only(aditionals_df):
         total_in_file = len(aditionals_df)
         not_found_records = []
         
+        # Crear diccionario para sumar múltiples filas del mismo Order Id  
         aditionals_dict = {}
         
         for idx, row in aditionals_df.iterrows():
             # Normalizar Order Id para que coincida con formato de BD (con comilla si es necesario)
             order_id = normalize_id_for_db_match(row.get('Order Id', ''))
             if order_id:
-                aditionals_dict[order_id] = row
+                if order_id not in aditionals_dict:
+                    # Primera vez que vemos este order_id - crear entrada nueva
+                    aditionals_dict[order_id] = {
+                        'Order Id': order_id,
+                        'Item': row.get('Item', ''),
+                        'Reference': row.get('Reference', ''),
+                        'Description': row.get('Description', ''),
+                        'Quantity': float(row.get('Quantity', 0)) if pd.notnull(row.get('Quantity')) else 0,
+                        'UnitPrice': float(row.get('UnitPrice', 0)) if pd.notnull(row.get('UnitPrice')) else 0,
+                        'Total': float(row.get('Total', 0)) if pd.notnull(row.get('Total')) else 0
+                    }
+                else:
+                    # Ya existe este order_id - sumar los valores numéricos
+                    existing = aditionals_dict[order_id]
+                    existing['Quantity'] += float(row.get('Quantity', 0)) if pd.notnull(row.get('Quantity')) else 0
+                    existing['UnitPrice'] += float(row.get('UnitPrice', 0)) if pd.notnull(row.get('UnitPrice')) else 0
+                    existing['Total'] += float(row.get('Total', 0)) if pd.notnull(row.get('Total')) else 0
+                    # Para campos de texto, mantener el primero
+                    if not existing['Item'] and row.get('Item'):
+                        existing['Item'] = row.get('Item', '')
+                    if not existing['Reference'] and row.get('Reference'):
+                        existing['Reference'] = row.get('Reference', '')
+                    if not existing['Description'] and row.get('Description'):
+                        existing['Description'] = row.get('Description', '')
         
         
         # Obtener IDs específicos para buscar en BD

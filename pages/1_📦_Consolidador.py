@@ -257,6 +257,9 @@ def show_concise_report(total_in_file, found_in_db, processed, failed_list=None,
     # Si hay fallos, mostrar alerta
     if failed_list and len(failed_list) > 0:
         st.warning(f"⚠️ {len(failed_list)} registros no procesados")
+        st.info(f"🔍 DEBUG: failed_list tiene {len(failed_list)} elementos")
+        st.info(f"🔍 DEBUG: original_df es {'None' if original_df is None else f'DataFrame con {len(original_df)} filas'}")
+        st.info(f"🔍 DEBUG: file_type = {file_type}")
         
         col_log, col_csv = st.columns(2)
         

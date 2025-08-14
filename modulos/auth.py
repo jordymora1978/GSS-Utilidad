@@ -103,14 +103,17 @@ def login_user(username: str, password: str) -> Dict[str, Any]:
             "login_time": datetime.now().timestamp()
         }
         
-        # JavaScript para guardar en localStorage
-        st.markdown(f"""
-        <script>
-        // Guardar token de 12 horas en localStorage
-        localStorage.setItem('gss_auth_token', JSON.stringify({token_data}));
-        console.log('Token guardado en localStorage por 12 horas');
-        </script>
-        """, unsafe_allow_html=True)
+        # Usar st.cache_data para persistencia adicional
+        @st.cache_data(ttl=43200)  # Cache por 12 horas
+        def cache_session_token(token, user_id):
+            return {
+                'token': token,
+                'user_id': user_id,
+                'expires_at': expires_at.timestamp()
+            }
+        
+        # Guardar en cache además de session_state
+        cache_session_token(session_token, user['id'])
         
         return {
             "success": True, 
@@ -127,7 +130,7 @@ def login_user(username: str, password: str) -> Dict[str, Any]:
         return {"success": False, "message": f"Error: {str(e)}"}
 
 def logout_user():
-    """Cerrar sesión del usuario y limpiar localStorage"""
+    """Cerrar sesión del usuario"""
     supabase = get_supabase_client()
     
     if hasattr(st.session_state, 'session_token'):
@@ -139,89 +142,42 @@ def logout_user():
         except:
             pass
     
-    # CRÍTICO: Limpiar localStorage mediante JavaScript
-    st.markdown("""
-    <script>
-    // Limpiar token de localStorage
-    localStorage.removeItem('gss_auth_token');
-    console.log('Token removido de localStorage - Logout exitoso');
-    </script>
-    """, unsafe_allow_html=True)
+    # Limpiar cache
+    st.cache_data.clear()
     
     # Limpiar session_state completamente
     keys_to_clear = ['user_id', 'username', 'user_role', 'user_full_name', 
                      'session_token', 'logged_in', 'token_expires_at', 
-                     'last_auth_check', 'localStorage_checked']
+                     'last_auth_check']
     
     for key in keys_to_clear:
         if key in st.session_state:
             del st.session_state[key]
 
 def is_logged_in() -> bool:
-    """Verificar si el usuario está logueado con persistencia localStorage"""
-    # PRIORIDAD 1: Verificar localStorage al cargar la página
-    if not hasattr(st.session_state, 'localStorage_checked'):
-        # JavaScript para recuperar token de localStorage
-        st.markdown("""
-        <script>
-        // Recuperar token de localStorage
-        const storedToken = localStorage.getItem('gss_auth_token');
-        if (storedToken) {
-            const tokenData = JSON.parse(storedToken);
-            const now = Date.now() / 1000;
-            
-            // Verificar si el token no ha expirado (12 horas)
-            if (now < tokenData.expires_at) {
-                // Token válido - enviar a Streamlit
-                const sessionData = {
-                    'token_found': true,
-                    'session_token': tokenData.session_token,
-                    'user_id': tokenData.user_id,
-                    'username': tokenData.username,
-                    'user_role': tokenData.user_role,
-                    'user_full_name': tokenData.user_full_name,
-                    'expires_at': tokenData.expires_at
-                };
-                
-                // Marcar que encontramos token válido
-                console.log('Token válido encontrado en localStorage');
-                window.localStorage_session_data = sessionData;
-            } else {
-                // Token expirado - limpiar localStorage
-                localStorage.removeItem('gss_auth_token');
-                console.log('Token expirado - removido de localStorage');
-                window.localStorage_session_data = {'token_found': false};
-            }
-        } else {
-            window.localStorage_session_data = {'token_found': false};
-        }
-        </script>
-        """, unsafe_allow_html=True)
-        
-        # Simular datos recuperados de localStorage (en producción vendría del JS)
-        # Por ahora verificamos si ya tenemos session_state válido
-        st.session_state.localStorage_checked = True
-        
-        # Si no tenemos sesión actual, intentar recuperar de localStorage
-        # En una implementación completa, esto vendría del JavaScript
-        if not hasattr(st.session_state, 'logged_in') or not st.session_state.logged_in:
-            # Por ahora mantenemos la lógica existente
-            pass
+    """Verificar si el usuario está logueado con persistencia mejorada"""
+    # PRIORIDAD 1: Mantener sesión si existe token válido en session_state
+    if hasattr(st.session_state, 'token_expires_at'):
+        current_time = datetime.now().timestamp()
+        if current_time < st.session_state.token_expires_at:
+            # Token aún válido, mantener sesión activa
+            st.session_state.logged_in = True
+            return True
     
-    # PRIORIDAD 2: Verificar session_state actual
+    # PRIORIDAD 2: Verificar session_state básico
     if not hasattr(st.session_state, 'logged_in') or not st.session_state.logged_in:
         return False
     
     if not hasattr(st.session_state, 'session_token'):
         return False
     
-    # PRIORIDAD 3: Si tenemos verificación reciente (menos de 10 minutos), confiar en ella
+    # PRIORIDAD 3: Si tenemos verificación reciente (menos de 30 minutos), confiar en ella
     if hasattr(st.session_state, 'last_auth_check'):
         time_since_check = datetime.now() - st.session_state.last_auth_check
-        if time_since_check < timedelta(minutes=10):  # Aumentado a 10 minutos
+        if time_since_check < timedelta(minutes=30):  # Aumentado a 30 minutos para reducir verificaciones
             return True
     
-    # PRIORIDAD 4: Verificar token en base de datos solo cada 10 minutos
+    # PRIORIDAD 4: Verificar token en base de datos solo cada 30 minutos
     supabase = get_supabase_client()
     if not supabase:
         return False
@@ -278,28 +234,21 @@ def refresh_token_if_needed():
                 'expires_at': new_expires_at.isoformat()
             }).eq('user_id', st.session_state.user_id).execute()
             
-            # Actualizar session_state
+            # Actualizar session_state (ESTO ES LO IMPORTANTE)
             st.session_state.session_token = new_session_token
             st.session_state.token_expires_at = new_expires_at.timestamp()
+            st.session_state.logged_in = True
             
-            # Actualizar localStorage
-            token_data = {
-                "session_token": new_session_token,
-                "user_id": st.session_state.user_id,
-                "username": st.session_state.username,
-                "user_role": st.session_state.user_role,
-                "user_full_name": st.session_state.user_full_name,
-                "expires_at": new_expires_at.timestamp(),
-                "login_time": datetime.now().timestamp()
-            }
+            # Actualizar cache
+            @st.cache_data(ttl=43200)  # Cache por 12 horas
+            def update_cached_token(token, user_id):
+                return {
+                    'token': token,
+                    'user_id': user_id,
+                    'expires_at': new_expires_at.timestamp()
+                }
             
-            st.markdown(f"""
-            <script>
-            // Actualizar token renovado en localStorage
-            localStorage.setItem('gss_auth_token', JSON.stringify({token_data}));
-            console.log('Token renovado automáticamente - 12 horas más');
-            </script>
-            """, unsafe_allow_html=True)
+            update_cached_token(new_session_token, st.session_state.user_id)
             
         except Exception as e:
             # Si falla la renovación, mantener sesión actual

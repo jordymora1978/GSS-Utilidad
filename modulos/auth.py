@@ -131,7 +131,13 @@ def is_logged_in() -> bool:
     if not hasattr(st.session_state, 'session_token'):
         return False
     
-    # Verificar token en base de datos
+    # Si tenemos una verificación reciente (menos de 5 minutos), confiar en ella
+    if hasattr(st.session_state, 'last_auth_check'):
+        time_since_check = datetime.now() - st.session_state.last_auth_check
+        if time_since_check < timedelta(minutes=5):
+            return True
+    
+    # Verificar token en base de datos solo cada 5 minutos
     supabase = get_supabase_client()
     if not supabase:
         return False
@@ -151,6 +157,8 @@ def is_logged_in() -> bool:
             logout_user()
             return False
         
+        # Marcar que verificamos recientemente
+        st.session_state.last_auth_check = datetime.now()
         return True
         
     except Exception as e:

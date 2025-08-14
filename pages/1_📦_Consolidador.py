@@ -2026,7 +2026,7 @@ def main():
     query_col1, query_col2 = st.columns(2)
     
     with query_col1:
-        if st.button("📊 Ver Estadísticas Generales"):
+        if st.button("📊 Ver Estadísticas Generales", type="primary"):
             try:
                 result = supabase.table('consolidated_orders').select('account_name').execute()
                 
@@ -2044,7 +2044,7 @@ def main():
                 st.error(f"Error consultando estadísticas: {str(e)}")
     
     with query_col2:
-        if st.button("📋 Ver Últimos Registros"):
+        if st.button("📋 Ver Últimos Registros", type="primary"):
             try:
                 result = supabase.table('consolidated_orders').select('*').order('id', desc=True).limit(10).execute()
                 
@@ -2065,7 +2065,7 @@ def main():
     quick_col1, quick_col2, quick_col3, quick_col4 = st.columns(4)
     
     with quick_col1:
-        if st.button("📊 Últimos 20"):
+        if st.button("📊 Últimos 20", type="primary"):
             try:
                 result = supabase.table('consolidated_orders').select('*').order('id', desc=True).limit(20).execute()
                 if result.data:
@@ -2078,7 +2078,7 @@ def main():
                 st.error(f"Error: {str(e)}")
     
     with quick_col2:
-        if st.button("🔍 Con Logistics"):
+        if st.button("🔍 Con Logistics", type="primary"):
             try:
                 result = supabase.table('consolidated_orders').select('*').not_.is_('logistics_reference', 'null').limit(20).execute()
                 if result.data:
@@ -2091,7 +2091,7 @@ def main():
                 st.error(f"Error: {str(e)}")
     
     with quick_col3:
-        if st.button("💰 Con CXP"):
+        if st.button("💰 Con CXP", type="primary"):
             try:
                 result = supabase.table('consolidated_orders').select('*').not_.is_('cxp_amt_due', 'null').limit(20).execute()
                 if result.data:
@@ -2104,7 +2104,7 @@ def main():
                 st.error(f"Error: {str(e)}")
     
     with quick_col4:
-        if st.button("🔢 Contar Todo"):
+        if st.button("🔢 Contar Todo", type="primary"):
             try:
                 # Conteo total
                 total_result = supabase.table('consolidated_orders').select('id', count='exact').execute()
@@ -2170,7 +2170,7 @@ def main():
              "7-COMPRA-YA", "8-FABORCARGO"]
         )
     
-    if st.button("🔍 Buscar"):
+    if st.button("🔍 Buscar", type="primary"):
         try:
             # Preparar listas de IDs
             order_ids = []

@@ -239,7 +239,7 @@ def create_error_log(filename, errors_list):
     
     return log_content, log_filename
 
-def show_concise_report(total_in_file, found_in_db, processed, failed_list=None):
+def show_concise_report(total_in_file, found_in_db, processed, failed_list=None, original_df=None, file_type="archivo"):
     """Muestra un reporte conciso del proceso"""
     success_rate = (processed / total_in_file * 100) if total_in_file > 0 else 0
     
@@ -258,15 +258,55 @@ def show_concise_report(total_in_file, found_in_db, processed, failed_list=None)
     if failed_list and len(failed_list) > 0:
         st.warning(f"⚠️ {len(failed_list)} registros no procesados")
         
-        # Crear log de errores
-        log_content, log_filename = create_error_log("consolidador", failed_list)
-        if log_content:
-            st.download_button(
-                label="📥 Descargar log de errores",
-                data=log_content,
-                file_name=log_filename,
-                mime="text/plain"
-            )
+        col_log, col_csv = st.columns(2)
+        
+        with col_log:
+            # Crear log de errores (texto)
+            log_content, log_filename = create_error_log("consolidador", failed_list)
+            if log_content:
+                st.download_button(
+                    label="📥 Descargar log de errores",
+                    data=log_content,
+                    file_name=log_filename,
+                    mime="text/plain"
+                )
+        
+        with col_csv:
+            # Crear CSV con registros rezagados (datos originales)
+            if original_df is not None and len(failed_list) > 0:
+                try:
+                    # Determinar la columna clave según el tipo de archivo
+                    key_column = None
+                    if file_type.lower() == "logistics":
+                        key_column = "References"
+                    elif file_type.lower() == "aditionals":
+                        key_column = "Order Id"
+                    elif file_type.lower() == "cxp":
+                        key_column = "prealert_id"
+                    
+                    if key_column and key_column in original_df.columns:
+                        # Filtrar el dataframe original para obtener solo los registros no encontrados
+                        failed_ids = set(failed_list)
+                        
+                        # Normalizar la columna clave del dataframe para hacer match
+                        df_filtered = original_df[original_df[key_column].astype(str).str.strip().isin(failed_ids)].copy()
+                        
+                        if not df_filtered.empty:
+                            # Generar CSV con las columnas exactas del archivo original
+                            csv_content = df_filtered.to_csv(index=False, encoding='utf-8-sig')
+                            
+                            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                            csv_filename = f"registros_rezagados_{file_type.lower()}_{timestamp}.csv"
+                            
+                            st.download_button(
+                                label="📊 Descargar registros rezagados",
+                                data=csv_content,
+                                file_name=csv_filename,
+                                mime="text/csv",
+                                help="Descarga los registros del archivo original que no se encontraron en la BD"
+                            )
+                except Exception as e:
+                    st.caption(f"Error generando CSV de rezagados: {str(e)}")
     
     return success_rate
 
@@ -1205,7 +1245,7 @@ def update_logistics_only(logistics_df, logistics_date=None):
             # Mostrar reporte conciso
             st.markdown("### 📊 Reporte de Logistics")
             found_in_db = len(existing_records)
-            show_concise_report(total_in_file, found_in_db, total_updated, not_found_records)
+            show_concise_report(total_in_file, found_in_db, total_updated, not_found_records, logistics_df, "logistics")
             
             if total_updated > 0:
                 st.success(f"✅ {total_updated} registros actualizados exitosamente")
@@ -1215,7 +1255,7 @@ def update_logistics_only(logistics_df, logistics_date=None):
             # Mostrar reporte aunque no haya actualizaciones
             st.markdown("### 📊 Reporte de Logistics")
             found_in_db = 0
-            show_concise_report(total_in_file, found_in_db, 0, not_found_records)
+            show_concise_report(total_in_file, found_in_db, 0, not_found_records, logistics_df, "logistics")
             st.error("❌ No se actualizaron registros")
             return 0
             
@@ -1373,7 +1413,7 @@ def update_aditionals_only(aditionals_df):
             # Mostrar reporte conciso
             st.markdown("### 📊 Reporte de Aditionals")
             found_in_db = len(existing_records) if 'existing_records' in locals() else matched_count
-            show_concise_report(total_in_file, found_in_db, total_updated, not_found_records)
+            show_concise_report(total_in_file, found_in_db, total_updated, not_found_records, aditionals_df, "aditionals")
             
             if total_updated > 0:
                 st.success(f"✅ {total_updated} registros actualizados exitosamente")
@@ -1382,7 +1422,7 @@ def update_aditionals_only(aditionals_df):
         else:
             # Mostrar reporte aunque no haya actualizaciones
             st.markdown("### 📊 Reporte de Aditionals")
-            show_concise_report(total_in_file, 0, 0, not_found_records)
+            show_concise_report(total_in_file, 0, 0, not_found_records, aditionals_df, "aditionals")
             st.error("❌ No se actualizaron registros")
             return 0
             

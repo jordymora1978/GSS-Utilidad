@@ -44,7 +44,43 @@ footer {visibility: hidden;}
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-# No necesitamos JavaScript agresivo - eliminado completamente
+# JavaScript para mejorar la persistencia de sesión
+session_persistence_js = """
+<script>
+// Función para verificar y cargar sesión automáticamente al iniciar la app
+function loadSessionFromStorage() {
+    const storedToken = localStorage.getItem('gss_auth_token');
+    if (storedToken) {
+        try {
+            const tokenData = JSON.parse(storedToken);
+            const now = Date.now() / 1000;
+            
+            // Verificar si el token está vigente
+            if (now < tokenData.expires_at) {
+                console.log('Sesión persistente encontrada y válida');
+                // En una implementación completa, aquí enviaríamos los datos a Streamlit
+                return true;
+            } else {
+                localStorage.removeItem('gss_auth_token');
+                console.log('Token expirado removido');
+                return false;
+            }
+        } catch (e) {
+            localStorage.removeItem('gss_auth_token');
+            console.log('Token corrupto removido');
+            return false;
+        }
+    }
+    return false;
+}
+
+// Verificar sesión al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    loadSessionFromStorage();
+});
+</script>
+"""
+st.markdown(session_persistence_js, unsafe_allow_html=True)
 
 # Función para verificar conexión a Supabase
 def check_database_connection():

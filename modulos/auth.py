@@ -45,6 +45,49 @@ def generate_session_token() -> str:
     """Generar token de sesión único"""
     return secrets.token_urlsafe(32)
 
+def restore_session_from_token(token: str) -> bool:
+    """Restaurar sesión desde un token guardado"""
+    supabase = get_supabase_client()
+    if not supabase:
+        return False
+    
+    try:
+        # Buscar sesión activa con este token
+        result = supabase.table('user_sessions').select('*').eq(
+            'session_token', token
+        ).eq('is_active', True).execute()
+        
+        if not result.data:
+            return False
+        
+        session = result.data[0]
+        
+        # Verificar expiración
+        expires_at = datetime.fromisoformat(session['expires_at'].replace('Z', '+00:00'))
+        if datetime.now() > expires_at.replace(tzinfo=None):
+            return False
+        
+        # Obtener datos del usuario
+        user_result = supabase.table('users').select('*').eq('id', session['user_id']).execute()
+        if not user_result.data:
+            return False
+        
+        user = user_result.data[0]
+        
+        # Restaurar session_state
+        st.session_state.user_id = user['id']
+        st.session_state.username = user['username']
+        st.session_state.user_role = user['role']
+        st.session_state.user_full_name = user['full_name']
+        st.session_state.session_token = token
+        st.session_state.logged_in = True
+        st.session_state.token_expires_at = expires_at.timestamp()
+        
+        return True
+        
+    except Exception as e:
+        return False
+
 def login_user(username: str, password: str) -> Dict[str, Any]:
     """
     Autenticar usuario con persistencia de 12 horas
@@ -103,17 +146,8 @@ def login_user(username: str, password: str) -> Dict[str, Any]:
             "login_time": datetime.now().timestamp()
         }
         
-        # Usar st.cache_data para persistencia adicional
-        @st.cache_data(ttl=43200)  # Cache por 12 horas
-        def cache_session_token(token, user_id):
-            return {
-                'token': token,
-                'user_id': user_id,
-                'expires_at': expires_at.timestamp()
-            }
-        
-        # Guardar en cache además de session_state
-        cache_session_token(session_token, user['id'])
+        # Agregar token a query params para persistencia
+        st.query_params['token'] = session_token
         
         return {
             "success": True, 
@@ -142,6 +176,10 @@ def logout_user():
         except:
             pass
     
+    # Limpiar query params
+    if 'token' in st.query_params:
+        del st.query_params['token']
+    
     # Limpiar cache
     st.cache_data.clear()
     
@@ -155,104 +193,27 @@ def logout_user():
             del st.session_state[key]
 
 def is_logged_in() -> bool:
-    """Verificar si el usuario está logueado con persistencia mejorada"""
-    # PRIORIDAD 1: Mantener sesión si existe token válido en session_state
+    """Verificar si el usuario está logueado - Compatible con refresh de página"""
+    # Si no hay sesión en session_state, intentar recuperar de la BD usando query params
+    if not hasattr(st.session_state, 'logged_in') or not st.session_state.logged_in:
+        # Intentar recuperar sesión usando query params si existe
+        query_params = st.query_params
+        if 'token' in query_params:
+            return restore_session_from_token(query_params['token'])
+        return False
+    
+    # Si tenemos token en session_state, verificar que no haya expirado
     if hasattr(st.session_state, 'token_expires_at'):
         current_time = datetime.now().timestamp()
         if current_time < st.session_state.token_expires_at:
-            # Token aún válido, mantener sesión activa
-            st.session_state.logged_in = True
             return True
-    
-    # PRIORIDAD 2: Verificar session_state básico
-    if not hasattr(st.session_state, 'logged_in') or not st.session_state.logged_in:
-        return False
-    
-    if not hasattr(st.session_state, 'session_token'):
-        return False
-    
-    # PRIORIDAD 3: Si tenemos verificación reciente (menos de 30 minutos), confiar en ella
-    if hasattr(st.session_state, 'last_auth_check'):
-        time_since_check = datetime.now() - st.session_state.last_auth_check
-        if time_since_check < timedelta(minutes=30):  # Aumentado a 30 minutos para reducir verificaciones
-            return True
-    
-    # PRIORIDAD 4: Verificar token en base de datos solo cada 30 minutos
-    supabase = get_supabase_client()
-    if not supabase:
-        return False
-    
-    try:
-        result = supabase.table('user_sessions').select('expires_at').eq(
-            'session_token', st.session_state.session_token
-        ).eq('is_active', True).execute()
-        
-        if not result.data:
+        else:
+            # Token expirado
             logout_user()
             return False
-        
-        # Verificar expiración (12 horas desde login)
-        expires_at = datetime.fromisoformat(result.data[0]['expires_at'].replace('Z', '+00:00'))
-        if datetime.now() > expires_at.replace(tzinfo=None):
-            logout_user()
-            return False
-        
-        # Marcar que verificamos recientemente
-        st.session_state.last_auth_check = datetime.now()
-        return True
-        
-    except Exception as e:
-        # En caso de error, mantener sesión si el token no está expirado
-        if hasattr(st.session_state, 'token_expires_at'):
-            if datetime.now().timestamp() < st.session_state.token_expires_at:
-                return True
-        logout_user()
-        return False
+    
+    return False
 
-def refresh_token_if_needed():
-    """Renovar token automáticamente si está cerca de expirar"""
-    if not hasattr(st.session_state, 'token_expires_at'):
-        return
-    
-    # Si faltan menos de 2 horas para expirar, renovar token
-    current_time = datetime.now().timestamp()
-    time_until_expiry = st.session_state.token_expires_at - current_time
-    
-    if time_until_expiry < 7200:  # Menos de 2 horas (7200 segundos)
-        supabase = get_supabase_client()
-        if not supabase:
-            return
-        
-        try:
-            # Generar nuevo token de 12 horas
-            new_session_token = generate_session_token()
-            new_expires_at = datetime.now() + timedelta(hours=12)
-            
-            # Actualizar token en BD
-            supabase.table('user_sessions').update({
-                'session_token': new_session_token,
-                'expires_at': new_expires_at.isoformat()
-            }).eq('user_id', st.session_state.user_id).execute()
-            
-            # Actualizar session_state (ESTO ES LO IMPORTANTE)
-            st.session_state.session_token = new_session_token
-            st.session_state.token_expires_at = new_expires_at.timestamp()
-            st.session_state.logged_in = True
-            
-            # Actualizar cache
-            @st.cache_data(ttl=43200)  # Cache por 12 horas
-            def update_cached_token(token, user_id):
-                return {
-                    'token': token,
-                    'user_id': user_id,
-                    'expires_at': new_expires_at.timestamp()
-                }
-            
-            update_cached_token(new_session_token, st.session_state.user_id)
-            
-        except Exception as e:
-            # Si falla la renovación, mantener sesión actual
-            pass
 
 def require_auth(allowed_roles: list = None):
     """
@@ -263,9 +224,6 @@ def require_auth(allowed_roles: list = None):
         st.warning("🔐 Debes iniciar sesión para acceder a esta página")
         show_login_form()
         st.stop()
-    
-    # Renovar token automáticamente si es necesario
-    refresh_token_if_needed()
     
     if allowed_roles and st.session_state.user_role not in allowed_roles:
         st.error("❌ No tienes permisos para acceder a esta página")

@@ -164,8 +164,11 @@ def generar_reporte(fecha_inicio=None, fecha_fin=None):
                 df = df[df['amz_order_id'].notna()]
                 df = df[df['amz_order_id'] != '']
                 
-                # Convertir refunded_date (ya viene filtrada)
+                # Convertir refunded_date (ya viene filtrada) y eliminar timezone
                 df['refunded_date'] = pd.to_datetime(df['refunded_date'], errors='coerce')
+                # Remover timezone si existe para compatibilidad con Excel
+                if df['refunded_date'].dt.tz is not None:
+                    df['refunded_date'] = df['refunded_date'].dt.tz_localize(None)
                 
                 if not df.empty:
                     # LIMPIAR VALORES MONETARIOS
@@ -333,8 +336,15 @@ def generar_reporte(fecha_inicio=None, fecha_fin=None):
                     with col2:
                         buffer = io.BytesIO()
                         with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
-                            # Usar dataframe sin formato para Excel
-                            df_export.to_excel(writer, sheet_name='REEMBOLSOS', index=False)
+                            # Preparar dataframe para Excel - remover timezone de todas las columnas datetime
+                            df_excel = df_export.copy()
+                            for col in df_excel.columns:
+                                if pd.api.types.is_datetime64_any_dtype(df_excel[col]):
+                                    if hasattr(df_excel[col].dtype, 'tz') and df_excel[col].dtype.tz is not None:
+                                        df_excel[col] = df_excel[col].dt.tz_localize(None)
+                            
+                            # Exportar a Excel
+                            df_excel.to_excel(writer, sheet_name='REEMBOLSOS', index=False)
                             resumen.to_excel(writer, sheet_name='RESUMEN')
                     
                         st.download_button(

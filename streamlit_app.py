@@ -19,288 +19,32 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# CSS personalizado para ocultar TODOS los elementos de Streamlit
+# CSS mínimo para ocultar solo los badges de Streamlit sin romper funcionalidad
 hide_streamlit_style = """
 <style>
-/* Ocultar el menú de hamburguesa */
-#MainMenu {visibility: hidden !important;}
+/* Ocultar el menú principal de Streamlit */
+#MainMenu {visibility: hidden;}
 
-/* Ocultar el footer completo */
-footer {visibility: hidden !important;}
-.footer {display: none !important;}
+/* Ocultar el footer de Streamlit */
+footer {visibility: hidden;}
 
-/* Ocultar el header completo */
-header {visibility: hidden !important;}
-.stHeader {display: none !important;}
+/* Ocultar el header de deploy */
+.stDeployButton {display: none;}
 
-/* Ocultar toolbar y sus elementos */
-[data-testid="stToolbar"] {display: none !important;}
-.stToolbar {display: none !important;}
+/* Ocultar badges específicos de Streamlit Cloud */
+[data-testid="stDecoration"] {display: none;}
+.viewerBadge_container__1QSob {display: none;}
+.viewerBadge_link__1S2v2 {display: none;}
 
-/* Ocultar botones específicos */
-.stDeployButton {display: none !important;}
-.stActionButton {display: none !important;}
-
-/* Ocultar badges y links de Streamlit */
-.viewerBadge_container__1QSob {display: none !important;}
-.viewerBadge_link__1S2v2 {display: none !important;}
-.viewerBadge_text__1JaDK {display: none !important;}
-
-/* Ocultar elementos del header superior */
-.stApp > header {display: none !important;}
-.stApp > div[data-testid="stHeader"] {display: none !important;}
-
-/* Ocultar el área completa del header */
-section[data-testid="stHeader"] {display: none !important;}
-
-/* Ocultar links específicos */
-a[href*="github"] {display: none !important;}
-a[href*="streamlit"] {display: none !important;}
-
-/* Ocultar el elemento "Fork this app" */
-.css-1dp5vir {display: none !important;}
-
-/* Ocultar marca roja de Streamlit */
-.css-1544g2n {display: none !important;}
-.css-18e3th9 {display: none !important;}
-
-/* Limpiar completamente el header */
-.block-container {padding-top: 1rem !important;}
-
-/* ELIMINACIÓN AGRESIVA DEL BADGE INFERIOR */
-/* Todos los posibles selectores para el badge "Made with Streamlit" */
-[data-testid="stBottom"] {display: none !important;}
-.streamlit-footer {display: none !important;}
-.footer {display: none !important;}
-div[data-testid="stStatusWidget"] {display: none !important;}
-.StatusWidget {display: none !important;}
-
-/* Selectores adicionales para badges */
-div[class*="viewerBadge"] {display: none !important;}
-div[class*="made-with-streamlit"] {display: none !important;}
-div[class*="streamlit-badge"] {display: none !important;}
-
-/* Ocultar cualquier elemento que contenga "streamlit" */
-*[class*="streamlit"]:not(.stApp):not([data-testid]) {display: none !important;}
-
-/* Footer positioning fix */
-.main .block-container {padding-bottom: 1rem !important;}
-
-/* Remover completamente el área del footer */
-.stApp > footer {display: none !important;}
-.stApp footer {display: none !important;}
-footer.stApp {display: none !important;}
-
-/* Último recurso - ocultar por contenido */
-*:contains("Made with") {display: none !important;}
-*:contains("Streamlit") {display: none !important;}
-
-/* ELIMINACIÓN NUCLEAR DEL BADGE - TODOS LOS MÉTODOS */
-/* Por atributos data */
-[data-testid*="status"] {display: none !important;}
-[data-testid*="Status"] {display: none !important;}
-[data-testid*="badge"] {display: none !important;}
-[data-testid*="Badge"] {display: none !important;}
-
-/* Por clases CSS específicas de versiones */
-.css-1v0mbdj {display: none !important;}
-.css-18e3th9 {display: none !important;}
-.css-1544g2n {display: none !important;}
-.css-k1ih3n {display: none !important;}
-.css-1dp5vir {display: none !important;}
-
-/* Fuerza bruta - cualquier div pequeño en la parte inferior */
-div[style*="position: fixed"][style*="bottom"] {display: none !important;}
-div[style*="position: absolute"][style*="bottom"] {display: none !important;}
-
-/* Eliminar por z-index alto (badges suelen tener z-index alto) */
-*[style*="z-index: 999"] {display: none !important;}
-*[style*="z-index: 1000"] {display: none !important;}
-
-/* Ocultar elementos muy pequeños que podrían ser badges */
-div[style*="height: 20px"], div[style*="height: 30px"], div[style*="height: 40px"] {
-    display: none !important;
+/* Ajustar padding superior */
+.block-container {
+    padding-top: 2rem;
 }
-
-/* Eliminar cualquier link externo */
-a[href*="streamlit.io"] {display: none !important;}
-a[href*="github.com"] {display: none !important;}
-a[target="_blank"] {display: none !important;}
-
-/* ELIMINAR ESPECÍFICAMENTE LOS LINKS QUE MENCIONASTE */
-a[href*="share.streamlit.io/user/jordymora1978"] {display: none !important;}
-a[href*="streamlit.io/cloud"] {display: none !important;}
-a[href*="share.streamlit.io"] {display: none !important;}
-
-/* Eliminar botones de deploy/share específicos */
-button[title*="Deploy"] {display: none !important;}
-button[title*="Share"] {display: none !important;}
-button[aria-label*="Deploy"] {display: none !important;}
-button[aria-label*="Share"] {display: none !important;}
-
-/* Eliminar elementos con iconos de compartir/deploy */
-[data-testid*="deploy"] {display: none !important;}
-[data-testid*="share"] {display: none !important;}
-[data-testid*="Deploy"] {display: none !important;}
-[data-testid*="Share"] {display: none !important;}
-
-/* Ocultar elementos que contengan estos textos */
-*:contains("Deploy") {display: none !important;}
-*:contains("Share") {display: none !important;}
-*:contains("share.streamlit.io") {display: none !important;}
 </style>
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-# JavaScript ULTRA agresivo para eliminar badges
-remove_badges_js = """
-<script>
-function ultraRemoveBadges() {
-    // MÉTODO 1: Eliminar por selectores específicos
-    const selectors = [
-        '[data-testid="stStatusWidget"]',
-        '[data-testid="stBottom"]', 
-        '.viewerBadge_container__1QSob',
-        '.viewerBadge_link__1S2v2',
-        '.viewerBadge_text__1JaDK',
-        'div[class*="viewerBadge"]',
-        'div[class*="streamlit"]',
-        'div[class*="StatusWidget"]',
-        '[class*="made-with"]',
-        'footer',
-        '.footer'
-    ];
-    
-    selectors.forEach(selector => {
-        document.querySelectorAll(selector).forEach(el => {
-            if (el && !el.closest('.stApp')) {
-                el.style.display = 'none !important';
-                el.style.visibility = 'hidden !important';
-                el.style.opacity = '0 !important';
-                el.style.height = '0 !important';
-                el.style.overflow = 'hidden !important';
-                el.remove();
-            }
-        });
-    });
-    
-    // MÉTODO 2: Por contenido de texto (más agresivo)
-    document.querySelectorAll('*').forEach(el => {
-        if (el.textContent) {
-            const text = el.textContent.toLowerCase();
-            if (text.includes('made with') || 
-                text.includes('streamlit') || 
-                text.includes('fork') ||
-                text.includes('github') ||
-                text.includes('deploy') ||
-                text.includes('share')) {
-                if (!el.closest('.stApp') && !el.classList.contains('stApp')) {
-                    el.style.display = 'none !important';
-                    el.remove();
-                }
-            }
-        }
-    });
-    
-    // MÉTODO ESPECÍFICO: Eliminar links exactos que mencionaste
-    const specificUrls = [
-        'share.streamlit.io/user/jordymora1978',
-        'streamlit.io/cloud',
-        'share.streamlit.io'
-    ];
-    
-    document.querySelectorAll('a').forEach(link => {
-        if (link.href) {
-            specificUrls.forEach(url => {
-                if (link.href.includes(url)) {
-                    link.style.display = 'none !important';
-                    link.remove();
-                }
-            });
-        }
-    });
-    
-    // MÉTODO 3: Eliminar todos los iframes (a veces el badge está ahí)
-    document.querySelectorAll('iframe').forEach(iframe => {
-        if (iframe.src && (iframe.src.includes('streamlit') || iframe.src.includes('github'))) {
-            iframe.remove();
-        }
-    });
-    
-    // MÉTODO 4: Limpiar el DOM completamente del footer
-    const footer = document.querySelector('footer');
-    if (footer) footer.remove();
-    
-    // MÉTODO 5: Ocultar elementos por posición (último recurso)
-    document.querySelectorAll('div').forEach(div => {
-        const rect = div.getBoundingClientRect();
-        if (rect.bottom > window.innerHeight - 100 && div.textContent && 
-            (div.textContent.includes('Made') || div.textContent.includes('Streamlit'))) {
-            div.remove();
-        }
-    });
-}
-
-// Ejecutar inmediatamente y luego cada 500ms
-ultraRemoveBadges();
-setInterval(ultraRemoveBadges, 500);
-
-// FUERZA BRUTA ABSOLUTA - Inspección DOM cada 100ms
-setInterval(() => {
-    // Eliminar CUALQUIER elemento que contenga "streamlit" en href
-    document.querySelectorAll('a[href]').forEach(link => {
-        if (link.href.includes('streamlit')) {
-            console.log('Destroying Streamlit link:', link.href);
-            link.parentNode && link.parentNode.removeChild(link);
-        }
-    });
-    
-    // Eliminar elementos por texto visible
-    document.querySelectorAll('*').forEach(el => {
-        const text = el.innerText || el.textContent || '';
-        if (text.includes('Made with') || text.includes('Deploy') || text.includes('Share')) {
-            if (el.tagName !== 'BODY' && el.tagName !== 'HTML' && !el.classList.contains('stApp')) {
-                console.log('Destroying text element:', text.substring(0, 50));
-                el.style.display = 'none !important';
-                el.remove();
-            }
-        }
-    });
-    
-    // Eliminar por posición (elementos en esquinas)
-    document.querySelectorAll('div, a, button').forEach(el => {
-        const rect = el.getBoundingClientRect();
-        const style = window.getComputedStyle(el);
-        
-        // Si está posicionado en esquinas con position fixed/absolute
-        if ((style.position === 'fixed' || style.position === 'absolute') && 
-            (rect.top < 100 || rect.bottom > window.innerHeight - 100) &&
-            (rect.right > window.innerWidth - 200 || rect.left < 200)) {
-            
-            const text = el.innerText || el.textContent || '';
-            if (text.length < 100 && (el.tagName === 'A' || el.href)) {
-                console.log('Destroying corner element:', el);
-                el.remove();
-            }
-        }
-    });
-}, 100);
-
-// También ejecutar cuando el DOM cambie
-const observer = new MutationObserver(ultraRemoveBadges);
-observer.observe(document.body, { childList: true, subtree: true });
-
-// CSS adicional inyectado dinámicamente
-const style = document.createElement('style');
-style.innerHTML = `
-    a[href*="streamlit"] { display: none !important; visibility: hidden !important; opacity: 0 !important; }
-    *[href*="share.streamlit.io"] { display: none !important; }
-    button[title*="Deploy"], button[title*="Share"] { display: none !important; }
-`;
-document.head.appendChild(style);
-</script>
-"""
-st.markdown(remove_badges_js, unsafe_allow_html=True)
+# No necesitamos JavaScript agresivo - eliminado completamente
 
 # Función para verificar conexión a Supabase
 def check_database_connection():

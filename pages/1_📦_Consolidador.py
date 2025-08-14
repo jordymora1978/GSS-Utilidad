@@ -1,4 +1,4 @@
-# Actualizado: 2025-01-13 - Corrección de error en archivo Logistics
+# Actualizado: 2025-08-14 - Botones azules y sesión mejorada - VERSIÓN TEST
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -68,6 +68,55 @@ if supabase:
 else:
     st.error("❌ No se pudo conectar a la base de datos")
     st.stop()
+
+# INDICADOR DE VERSIÓN PARA DEBUG
+st.sidebar.info("🔧 VERSIÓN TEST - 14/08/2025 - Botones azules activos")
+
+# CSS personalizado para botones azules específicos
+st.markdown("""
+<style>
+/* Personalizar botones primary con colores específicos */
+.stApp div[data-testid="stHorizontalBlock"] > div > div > button[kind="primary"],
+.stApp button[kind="primary"] {
+    background-color: #1d4ed8 !important;
+    border-color: #1d4ed8 !important;
+    color: white !important;
+}
+
+.stApp div[data-testid="stHorizontalBlock"] > div > div > button[kind="primary"]:hover,
+.stApp button[kind="primary"]:hover {
+    background-color: #1e40af !important;
+    border-color: #1e40af !important;
+    color: white !important;
+}
+
+.stApp div[data-testid="stHorizontalBlock"] > div > div > button[kind="primary"]:active,
+.stApp button[kind="primary"]:active {
+    background-color: #1e40af !important;
+    border-color: #1e40af !important;
+    color: white !important;
+}
+
+/* Asegurar que todos los botones type="primary" usen estos colores */
+div.stButton > button[data-testid="baseButton-primary"] {
+    background-color: #1d4ed8 !important;
+    border-color: #1d4ed8 !important;
+    color: white !important;
+}
+
+div.stButton > button[data-testid="baseButton-primary"]:hover {
+    background-color: #1e40af !important;
+    border-color: #1e40af !important;
+    color: white !important;
+}
+
+div.stButton > button[data-testid="baseButton-primary"]:active {
+    background-color: #1e40af !important;
+    border-color: #1e40af !important;
+    color: white !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # =====================================================
 # FUNCIONES DE FORMATO Y LIMPIEZA

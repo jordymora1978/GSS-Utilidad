@@ -134,16 +134,69 @@ def generar_reporte(fecha_inicio=None, fecha_fin=None):
                         st.markdown("---")
                         st.subheader("📋 Detalle del Reporte")
                         
-                        # Columnas a mostrar
+                        # Crear copia para display
+                        df_display = df.copy()
+                        
+                        # Formatear net_received_amount como pesos colombianos
+                        df_display['net_received_formatted'] = df_display['net_received_amount'].apply(
+                            lambda x: f"${x:,.0f} COP" if pd.notnull(x) and x != 0 else ""
+                        )
+                        
+                        # Formatear declare_value
+                        df_display['declare_value_formatted'] = df_display['declare_value'].apply(
+                            lambda x: f"${x:,.2f}" if pd.notnull(x) and x != 0 else ""
+                        )
+                        
+                        # Amazon (declare_value * quantity)
+                        df_display['Amazon'] = df_display['declare_value'] * df_display['quantity']
+                        df_display['Amazon_formatted'] = df_display['Amazon'].apply(
+                            lambda x: f"${x:,.2f}" if pd.notnull(x) and x != 0 else ""
+                        )
+                        
+                        # Meli USD formateado
+                        df_display['Meli_USD_formatted'] = df_display['Meli_USD'].apply(
+                            lambda x: f"${x:,.2f}" if pd.notnull(x) and x != 0 else ""
+                        )
+                        
+                        # Bodegal (logistic_type == 'xd_drop_off' ? 3.5 : 0)
+                        if 'logistic_type' in df.columns:
+                            df_display['Bodegal'] = df_display['logistic_type'].apply(lambda x: 3.5 if x == 'xd_drop_off' else 0)
+                        else:
+                            df_display['Bodegal'] = 0
+                        
+                        # Socio cuenta = 0 para TODOENCARGO-CO
+                        df_display['Socio_cuenta'] = 0
+                        
+                        # Impuesto facturación = 0 para TODOENCARGO-CO
+                        df_display['Impuesto_facturacion'] = 0
+                        
+                        # Utilidad GSS formateada
+                        df_display['Utilidad_Gss_formatted'] = df_display['Utilidad_Gss'].apply(
+                            lambda x: f"${x:,.2f}" if pd.notnull(x) else ""
+                        )
+                        
+                        # Columnas a mostrar con indicadores
                         columnas_mostrar = [
-                            'logistics_date', 'asignacion', 'prealert_id', 'order_id',
-                            'order_status_meli', 'net_received_amount', 'declare_value', 
-                            'quantity', 'logistics_total', 'aditionals_total',
-                            'TRM_Colombia', 'Meli_USD', 'Utilidad_Gss'
+                            ('logistics_date', '📅 Fecha'),
+                            ('asignacion', '🏷️ Asignación'),
+                            ('prealert_id', '📋 Prealert ID'),
+                            ('order_id', '📦 Order ID'),
+                            ('order_status_meli', '📊 Estado'),
+                            ('net_received_formatted', '💵 Net Received'),
+                            ('declare_value_formatted', '🟢 Declare Value'),
+                            ('Amazon_formatted', '🟠 Amazon'),
+                            ('Meli_USD_formatted', '🟡 Meli USD'),
+                            ('Bodegal', '🔵 Bodegal'),
+                            ('Socio_cuenta', '🟣 Socio Cuenta'),
+                            ('Impuesto_facturacion', '🔴 Impuesto Fact.'),
+                            ('Utilidad_Gss_formatted', '⚪ Utilidad GSS')
                         ]
                         
-                        columnas_disponibles = [col for col in columnas_mostrar if col in df.columns]
-                        df_mostrar = df[columnas_disponibles]
+                        # Crear DataFrame para mostrar
+                        df_mostrar = pd.DataFrame()
+                        for col_original, col_nuevo in columnas_mostrar:
+                            if col_original in df_display.columns:
+                                df_mostrar[col_nuevo] = df_display[col_original]
                         
                         # Mostrar sin formato de estilo
                         st.dataframe(df_mostrar, use_container_width=True, height=500)

@@ -193,9 +193,63 @@ def generar_reporte(fecha_inicio=None, fecha_fin=None):
                     ]
                     
                     columnas_disponibles = [col for col in columnas_mostrar if col in df.columns]
-                    df_mostrar = df[columnas_disponibles]
+                    df_mostrar = df[columnas_disponibles].copy()
                     
-                    # Mostrar sin formato de estilo
+                    # FORMATEAR PARA DISPLAY CON INDICADORES VISUALES
+                    # Formatear net_received_amount según país (Colombia - COP)
+                    if 'net_received_amount' in df_mostrar.columns:
+                        df_mostrar['💵 Net Received'] = df_mostrar['net_received_amount'].apply(
+                            lambda x: f"${x * trm_dict.get('colombia', 4250):,.0f} COP" if pd.notna(x) and x != 0 else "$0 COP"
+                        )
+                        df_mostrar = df_mostrar.drop('net_received_amount', axis=1)
+                    
+                    # Formatear otras columnas con indicadores
+                    if 'declare_value' in df_mostrar.columns:
+                        df_mostrar['🟢 Declare Value'] = df_mostrar['declare_value'].apply(
+                            lambda x: f"${x:,.2f}" if pd.notna(x) else "$0.00"
+                        )
+                        df_mostrar = df_mostrar.drop('declare_value', axis=1)
+                    
+                    if 'Meli_USD' in df_mostrar.columns:
+                        df_mostrar['🟡 Meli USD'] = df_mostrar['Meli_USD'].apply(
+                            lambda x: f"${x:,.2f}" if pd.notna(x) else "$0.00"
+                        )
+                        df_mostrar = df_mostrar.drop('Meli_USD', axis=1)
+                    
+                    # Para Colombia, Bodegal equivale a logistics_total
+                    if 'logistics_total' in df_mostrar.columns:
+                        df_mostrar['🔵 Bodegal'] = df_mostrar['logistics_total'].apply(
+                            lambda x: f"${x:,.2f}" if pd.notna(x) else "$0.00"
+                        )
+                        df_mostrar = df_mostrar.drop('logistics_total', axis=1)
+                    
+                    # Para Colombia, Socio Cuenta sería Utilidad_Socio
+                    if 'Utilidad_Socio' in df_mostrar.columns:
+                        df_mostrar['🟣 Socio Cuenta'] = df_mostrar['Utilidad_Socio'].apply(
+                            lambda x: f"${x:,.2f}" if pd.notna(x) else "$0.00"
+                        )
+                        df_mostrar = df_mostrar.drop('Utilidad_Socio', axis=1)
+                    
+                    # Impuesto Fact (Impuesto_facturacion para Colombia)
+                    if 'Impuesto_facturacion' in df_mostrar.columns:
+                        df_mostrar['🔴 Impuesto Fact.'] = df_mostrar['Impuesto_facturacion'].apply(
+                            lambda x: f"${x:,.2f}" if pd.notna(x) else "$0.00"
+                        )
+                        df_mostrar = df_mostrar.drop('Impuesto_facturacion', axis=1)
+                    
+                    if 'Utilidad_Gss' in df_mostrar.columns:
+                        df_mostrar['⚪ Utilidad GSS'] = df_mostrar['Utilidad_Gss'].apply(
+                            lambda x: f"${x:,.2f}" if pd.notna(x) else "$0.00"
+                        )
+                        df_mostrar = df_mostrar.drop('Utilidad_Gss', axis=1)
+                    
+                    # Agregar columna Amazon (que sería el declare_value * quantity para este reporte)
+                    if 'quantity' in df.columns:
+                        df_mostrar['🟠 Amazon'] = (df['declare_value'] * df['quantity']).apply(
+                            lambda x: f"${x:,.2f}" if pd.notna(x) else "$0.00"
+                        )
+                    
+                    # Mostrar dataframe formateado
                     st.dataframe(df_mostrar, use_container_width=True, height=500)
                     
                     # EXPORTAR

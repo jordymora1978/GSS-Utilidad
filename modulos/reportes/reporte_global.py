@@ -289,17 +289,62 @@ def generar_reporte(fecha_inicio=None, fecha_fin=None):
                     st.markdown("---")
                     st.subheader("📋 Detalle del Reporte Global")
                     
-                    # Columnas a mostrar
+                    # Renombrar columnas con indicadores visuales
+                    df_display = df.copy()
+                    
+                    # Función para formatear net_received_amount según país
+                    def format_net_received_by_country(row):
+                        value = row['net_received_amount']
+                        account = row['account_name']
+                        
+                        if pd.isna(value) or value == 0:
+                            return ""
+                        
+                        # Colombia accounts
+                        if account in ['1-TODOENCARGO-CO', '5-DETODOPARATODOS', '6-COMPRAFACIL', '7-COMPRA-YA']:
+                            return f"${value:,.0f} COP"
+                        # Perú accounts
+                        elif account == '4-MEGA TIENDAS PERUANAS':
+                            return f"S/{value:,.2f}"
+                        # Chile accounts
+                        else:
+                            return f"${value:,.0f} CLP"
+                    
+                    # Aplicar formato a net_received_amount
+                    df_display['net_received_formatted'] = df.apply(format_net_received_by_country, axis=1)
+                    
+                    # Renombrar columnas con indicadores
+                    column_rename = {
+                        'fecha_unificada': '📅 Fecha',
+                        'account_name': '🏢 Cuenta',
+                        'asignacion': '🏷️ Asignación',
+                        'order_id': '📦 Order ID',
+                        'order_status_meli': '📊 Estado',
+                        'net_received_formatted': '💵 Net Received',
+                        'declare_value': '🟢 Declare Value',
+                        'Amazon': '🟠 Amazon',
+                        'TRM': '💱 TRM',
+                        'Meli_USD': '🟡 Meli USD',
+                        'Bodegal': '🔵 Bodegal',
+                        'Socio_cuenta': '🟣 Socio Cuenta',
+                        'Impuesto_facturacion': '🔴 Impuesto Fact.',
+                        'Utilidad_Gss': '⚪ Utilidad GSS'
+                    }
+                    
+                    # Columnas a mostrar con nuevos nombres
                     columnas_mostrar = [
                         'fecha_unificada', 'account_name', 'asignacion', 'order_id',
-                        'order_status_meli', 'net_received_amount', 
+                        'order_status_meli', 'net_received_formatted', 
                         'Amazon', 'TRM', 'Meli_USD',
                         'Bodegal', 'Socio_cuenta', 'Impuesto_facturacion', 
                         'Utilidad_Gss'
                     ]
                     
-                    columnas_disponibles = [col for col in columnas_mostrar if col in df.columns]
-                    df_mostrar = df[columnas_disponibles]
+                    columnas_disponibles = [col for col in columnas_mostrar if col in df_display.columns]
+                    df_mostrar = df_display[columnas_disponibles]
+                    
+                    # Renombrar columnas
+                    df_mostrar = df_mostrar.rename(columns={k: v for k, v in column_rename.items() if k in df_mostrar.columns})
                     
                     # Mostrar sin formato de estilo
                     st.dataframe(df_mostrar, use_container_width=True, height=500)

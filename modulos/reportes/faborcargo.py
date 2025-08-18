@@ -252,29 +252,69 @@ def generar_reporte(fecha_inicio=None, fecha_fin=None):
                     columnas_disponibles = [col for col in columnas_mostrar if col in df.columns]
                     df_mostrar = df[columnas_disponibles].copy()
                     
-                    # Formatear columnas monetarias a dólares
-                    columnas_dolares = ['cxp_arancel', 'cxp_iva', 'cxp_amt_due', 
-                                       'declare_value', 'net_received_amount']
+                    # FORMATEAR PARA DISPLAY CON INDICADORES VISUALES
+                    # Formatear net_received_amount según país (Chile - CLP)
+                    if 'net_received_amount' in df_mostrar.columns:
+                        df_mostrar['💵 Net Received'] = df_mostrar['net_received_amount'].apply(
+                            lambda x: f"${x * trm_dict.get('chile', 850):,.0f} CLP" if pd.notna(x) and x != 0 else "$0 CLP"
+                        )
+                        df_mostrar = df_mostrar.drop('net_received_amount', axis=1)
+                    
+                    # Formatear otras columnas con indicadores
+                    if 'declare_value' in df_mostrar.columns:
+                        df_mostrar['🟢 Declare Value'] = df_mostrar['declare_value'].apply(
+                            lambda x: f"${x:,.2f}" if pd.notna(x) else "$0.00"
+                        )
+                        df_mostrar = df_mostrar.drop('declare_value', axis=1)
+                    
+                    # Para FABORCARGO, no hay Meli USD típico, pero podríamos mostrarlo si existe
+                    if 'net_received_amount' in df.columns:
+                        df_mostrar['🟡 Meli USD'] = (df['net_received_amount']).apply(
+                            lambda x: f"${x:,.2f}" if pd.notna(x) else "$0.00"
+                        )
+                    
+                    if 'Bodegal' in df_mostrar.columns:
+                        df_mostrar['🔵 Bodegal'] = df_mostrar['Bodegal'].apply(
+                            lambda x: f"${x:,.2f}" if pd.notna(x) else "$0.00"
+                        )
+                        df_mostrar = df_mostrar.drop('Bodegal', axis=1)
+                    
+                    # FABORCARGO no maneja Socio_cuenta, pero agregamos placeholder si es necesario
+                    # Aquí podríamos usar cxp_amt_due como referencia visual
+                    if 'cxp_amt_due' in df_mostrar.columns:
+                        df_mostrar['🔴 Impuesto Fact.'] = df_mostrar['cxp_amt_due'].apply(
+                            lambda x: f"${x:,.2f}" if pd.notna(x) else "$0.00"
+                        )
+                        df_mostrar = df_mostrar.drop('cxp_amt_due', axis=1)
+                    
+                    if 'Utilidad_Gss' in df_mostrar.columns:
+                        df_mostrar['⚪ Utilidad GSS'] = df_mostrar['Utilidad_Gss'].apply(
+                            lambda x: f"${x:,.2f}" if pd.notna(x) else "$0.00"
+                        )
+                        df_mostrar = df_mostrar.drop('Utilidad_Gss', axis=1)
+                    
+                    # Agregar columna Amazon (que sería el declare_value * quantity)
+                    if 'quantity' in df.columns:
+                        df_mostrar['🟠 Amazon'] = (df['declare_value'] * df['quantity']).apply(
+                            lambda x: f"${x:,.2f}" if pd.notna(x) else "$0.00"
+                        )
+                    
+                    # Formatear otras columnas monetarias restantes
+                    columnas_dolares = ['cxp_arancel', 'cxp_iva']
                     for col in columnas_dolares:
                         if col in df_mostrar.columns:
                             df_mostrar[col] = df_mostrar[col].apply(lambda x: f"${x:,.2f}" if pd.notna(x) else "$0.00")
                     
-                    # Formatear columnas calculadas (con emoji)
-                    if 'Bodegal' in df_mostrar.columns:
-                        df_mostrar['🔵 Bodegal'] = df_mostrar['Bodegal'].apply(lambda x: f"${x:,.2f}")
-                        df_mostrar.drop('Bodegal', axis=1, inplace=True)
-                    
+                    # Formatear Gss_Logistica con indicador especial
                     if 'Gss_Logistica' in df_mostrar.columns:
-                        df_mostrar['🔵 Gss_Logistica'] = df_mostrar['Gss_Logistica'].apply(lambda x: f"${x:,.2f}")
-                        df_mostrar.drop('Gss_Logistica', axis=1, inplace=True)
+                        df_mostrar['📦 Gss Logística'] = df_mostrar['Gss_Logistica'].apply(
+                            lambda x: f"${x:,.2f}" if pd.notna(x) else "$0.00"
+                        )
+                        df_mostrar = df_mostrar.drop('Gss_Logistica', axis=1)
                     
-                    if 'Utilidad_Gss' in df_mostrar.columns:
-                        df_mostrar['🔵 Utilidad_Gss'] = df_mostrar['Utilidad_Gss'].apply(lambda x: f"${x:,.2f}")
-                        df_mostrar.drop('Utilidad_Gss', axis=1, inplace=True)
-                    
+                    # Formatear TRM
                     if 'TRM_Chile' in df_mostrar.columns:
-                        df_mostrar['🇨🇱 TRM_Chile'] = df_mostrar['TRM_Chile'].apply(lambda x: f"${x:,.0f}")
-                        df_mostrar.drop('TRM_Chile', axis=1, inplace=True)
+                        df_mostrar['TRM_Chile'] = df_mostrar['TRM_Chile'].apply(lambda x: f"${x:,.0f}")
                     
                     # Formatear peso
                     if 'logistic_weight_kgs' in df_mostrar.columns:
@@ -283,7 +323,7 @@ def generar_reporte(fecha_inicio=None, fecha_fin=None):
                     if 'logistic_weight_lbs' in df_mostrar.columns:
                         df_mostrar['logistic_weight_lbs'] = df_mostrar['logistic_weight_lbs'].apply(lambda x: f"{x:.2f} lbs")
                     
-                    # Mostrar dataframe
+                    # Mostrar dataframe formateado
                     st.dataframe(df_mostrar, use_container_width=True, height=500)
                     
                     # EXPORTAR

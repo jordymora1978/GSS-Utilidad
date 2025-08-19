@@ -164,11 +164,25 @@ def main():
                     if prealert_id == 'nan' or prealert_id == '':
                         prealert_id = None
                     
+                    # Preparar formatos alternativos para búsqueda
+                    order_id_con_comilla = None
+                    prealert_id_con_decimal = None
+                    
+                    if order_id:
+                        # Agregar comilla simple al inicio si no la tiene
+                        order_id_con_comilla = f"'{order_id}" if not order_id.startswith("'") else order_id
+                    
+                    if prealert_id:
+                        # Agregar .0 al final si es un número sin decimales
+                        prealert_id_con_decimal = f"{prealert_id}.0" if '.' not in prealert_id else prealert_id
+                    
                     if order_id or prealert_id:  # Solo si tiene algún ID válido
                         registros_a_procesar.append({
                             'fila': idx + 1,
                             'order_id': order_id,
+                            'order_id_alt': order_id_con_comilla,
                             'prealert_id': prealert_id,
+                            'prealert_id_alt': prealert_id_con_decimal,
                             'logistics_date': logistics_date
                         })
                 
@@ -180,9 +194,23 @@ def main():
                 
                 for lote_idx, lote in enumerate(lotes):
                     try:
-                        # Extraer todos los IDs del lote
-                        prealert_ids = [r['prealert_id'] for r in lote if r['prealert_id']]
-                        order_ids = [r['order_id'] for r in lote if r['order_id']]
+                        # Extraer todos los IDs del lote (incluyendo formatos alternativos)
+                        prealert_ids = []
+                        order_ids = []
+                        
+                        for r in lote:
+                            if r['prealert_id']:
+                                prealert_ids.append(r['prealert_id'])
+                            if r['prealert_id_alt']:
+                                prealert_ids.append(r['prealert_id_alt'])
+                            if r['order_id']:
+                                order_ids.append(r['order_id'])
+                            if r['order_id_alt']:
+                                order_ids.append(r['order_id_alt'])
+                        
+                        # Eliminar duplicados
+                        prealert_ids = list(set(prealert_ids))
+                        order_ids = list(set(order_ids))
                         
                         # Consultar registros existentes en una sola query por lote
                         registros_existentes = {}
@@ -211,32 +239,55 @@ def main():
                         for registro in lote:
                             actualizado = False
                             metodo = 'N/A'
+                            prealert_usado = None
+                            order_usado = None
                             
-                            # Buscar si existe por prealert_id primero
+                            # Buscar si existe por prealert_id primero (probar ambos formatos)
                             if registro['prealert_id']:
+                                # Probar formato original
                                 key = f"prealert_{registro['prealert_id']}"
                                 if key in registros_existentes:
+                                    prealert_usado = registro['prealert_id']
+                                    actualizado = True
+                                # Probar formato alternativo con .0
+                                elif registro['prealert_id_alt']:
+                                    key_alt = f"prealert_{registro['prealert_id_alt']}"
+                                    if key_alt in registros_existentes:
+                                        prealert_usado = registro['prealert_id_alt']
+                                        actualizado = True
+                                
+                                if actualizado:
                                     if not modo_test:
-                                        # Actualizar individualmente (más rápido que antes porque ya tenemos los IDs)
+                                        # Actualizar usando el prealert_id que funcionó
                                         supabase.table('consolidated_orders').update({
                                             'logistics_date': registro['logistics_date']
-                                        }).eq('prealert_id', registro['prealert_id']).execute()
+                                        }).eq('prealert_id', prealert_usado).execute()
                                     
                                     actualizados_por_prealert += 1
-                                    actualizado = True
                                     metodo = 'Prealert ID'
                             
                             # Si no se encontró por prealert, buscar por order_id
                             if not actualizado and registro['order_id']:
+                                # Probar formato original
                                 key = f"order_{registro['order_id']}"
                                 if key in registros_existentes:
+                                    order_usado = registro['order_id']
+                                    actualizado = True
+                                # Probar formato alternativo con comilla
+                                elif registro['order_id_alt']:
+                                    key_alt = f"order_{registro['order_id_alt']}"
+                                    if key_alt in registros_existentes:
+                                        order_usado = registro['order_id_alt']
+                                        actualizado = True
+                                
+                                if actualizado:
                                     if not modo_test:
+                                        # Actualizar usando el order_id que funcionó
                                         supabase.table('consolidated_orders').update({
                                             'logistics_date': registro['logistics_date']
-                                        }).eq('order_id', registro['order_id']).execute()
+                                        }).eq('order_id', order_usado).execute()
                                     
                                     actualizados_por_order += 1
-                                    actualizado = True
                                     metodo = 'Order ID'
                             
                             # Agregar al log

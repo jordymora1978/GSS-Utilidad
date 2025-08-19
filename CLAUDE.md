@@ -44,12 +44,13 @@ sistema-contable-multipais/
 │   └── tools_local/ (respaldos)
 │
 ├── 📱 PAGES (Sistema principal)
-│   ├── 1_📦_Consolidador.py
-│   ├── 2_💱_Gestión_TRM.py  
-│   ├── 3_📊_Reportes.py
-│   ├── 4_👥_Usuarios.py
-│   └── tools/
-│       └── 5_🔧_Tools.py (índice de herramientas)
+│   ├── 1_🔍_Validador.py
+│   ├── 2_📦_Consolidador.py
+│   ├── 3_💱_Gestión_TRM.py  
+│   ├── 4_📊_Reportes.py
+│   ├── 5_👥_Usuarios.py
+│   ├── 6_──Tools──.py
+│   └── 7_📅_Date_Update.py
 │
 ├── 📂 MÓDULOS
 │   ├── auth.py
@@ -123,12 +124,58 @@ Las **herramientas** pueden usar autenticación simplificada o ninguna.
 4. **Conversión:** Solo con orden específica convertir a PAGE
 5. **Sincronización:** Solo cuando se decide actualizar GitHub
 
-## 📊 Herramientas Actuales
+## 📊 Páginas del Sistema
+
+| Página | Descripción | Funcionalidad |
+|--------|-------------|---------------|
+| **1_🔍_Validador** | Verificación de duplicados pre-consolidador | Valida Logistics, Aditionals, CXP contra BD |
+| **2_📦_Consolidador** | Procesamiento principal de archivos | Unifica datos en base de datos |
+| **3_💱_Gestión_TRM** | Manejo de tasas de cambio | Gestión TRM por país/fecha |
+| **4_📊_Reportes** | Generación de reportes | TodoEncargo, MegaTiendas, Reembolsos |
+| **5_👥_Usuarios** | Administración de usuarios | Gestión de accesos y permisos |
+| **6_──Tools──** | Índice de herramientas | Acceso a utilities y scripts |
+| **7_📅_Date_Update** | Actualización de fechas logistics | Procesamiento optimizado por lotes |
+
+## 🔧 Herramientas Locales (TOOLS)
 
 | Herramienta | Puerto | Descripción | Estado |
 |-------------|--------|-------------|--------|
 | `actualizar_logistics_date.py` | 8502 | Actualizar fechas desde Excel | 🔧 TOOL |
 | `verificar_duplicados.py` | 8503 | Pre-verificar archivos consolidador | 🔧 TOOL |
+
+## ⚡ Optimizaciones Recientes
+
+### 🔍 Validador (Página 1)
+- **Limpieza automática de archivos CXP** con títulos y headers
+- **Procesamiento por lotes** para consultas eficientes
+- **Soporte para 3 tipos:** Logistics, Aditionals, CXP
+- **Generación de Excel** con registros que necesitan procesarse
+
+### 📅 Date Update (Página 7) 
+- **Optimización masiva:** De 15,000 consultas individuales a ~300 lotes
+- **Procesamiento por lotes configurable** (10-500 registros)
+- **Mejora de velocidad:** ~80% más rápido para archivos grandes
+- **Progress tracking mejorado** por lotes
+
+## 🌿 Desarrollo Multi-Computadora
+
+### Branches Recomendados
+```bash
+# Configuración por computadora
+git checkout -b computadora-casa
+git checkout -b computadora-oficina
+
+# Flujo de trabajo
+1. Trabajar en branch específico
+2. Push de cambios: git push origin [branch-name]
+3. Merge cuando esté listo
+```
+
+### ⚠️ Consideraciones para Procesamiento Paralelo
+- **SEGURO:** Archivos diferentes, IDs diferentes
+- **RIESGOSO:** Mismos IDs en múltiples computadoras
+- **Recomendación:** Usar modo TEST primero
+- **Coordinación:** Dividir archivos por fecha/región
 
 ## 🎯 Próximas Herramientas
 
@@ -136,9 +183,10 @@ Las **herramientas** pueden usar autenticación simplificada o ninguna.
 - Utilidades de análisis de BD
 - Herramientas de backup/restore
 - Scripts de migración
+- Validador de integridad de datos
 
 ---
 
 **Última actualización:** 2025-08-18
-**Versión:** 1.0
+**Versión:** 2.0  
 **Autor:** Claude + Jordy

@@ -2121,15 +2121,17 @@ def main():
         **Búsqueda múltiple (separados por comas):**
         - Order IDs: `123456, 789012, 345678`
         - Prealert IDs: `abc123, def456, ghi789`
+        - Asignaciones: `AS123, AS456, AS789`
         
         **Consejos:**
         - ✅ Usa comas para separar múltiples IDs
         - ✅ Los espacios se limpian automáticamente
-        - ✅ Puedes combinar con filtro de Account
+        - ✅ Puedes combinar búsquedas y filtros
         - ⚠️ Máximo 200 resultados por búsqueda
         """)
     
-    search_col1, search_col2, search_col3 = st.columns(3)
+    # Crear 2 filas de búsqueda para mejor organización
+    search_col1, search_col2 = st.columns(2)
     
     with search_col1:
         search_order_id = st.text_input("Buscar por Order ID", 
@@ -2141,7 +2143,14 @@ def main():
                                           placeholder="abc123 o abc,def,ghi",
                                           help="Un solo ID o múltiples separados por comas")
     
+    search_col3, search_col4 = st.columns(2)
+    
     with search_col3:
+        search_asignacion = st.text_input("Buscar por Asignación", 
+                                         placeholder="AS123 o AS123,AS456",
+                                         help="Un solo ID o múltiples separados por comas")
+    
+    with search_col4:
         search_account = st.selectbox(
             "Filtrar por Account",
             ["Todos", "1-TODOENCARGO-CO", "2-MEGATIENDA SPA", "3-VEENDELO", 
@@ -2154,6 +2163,7 @@ def main():
             # Preparar listas de IDs
             order_ids = []
             prealert_ids = []
+            asignacion_ids = []
             
             # Procesar Order IDs (múltiples separados por coma)
             if search_order_id.strip():
@@ -2163,8 +2173,12 @@ def main():
             if search_prealert_id.strip():
                 prealert_ids = [id.strip() for id in search_prealert_id.split(',') if id.strip()]
             
+            # Procesar Asignación IDs (múltiples separados por coma)
+            if search_asignacion.strip():
+                asignacion_ids = [id.strip() for id in search_asignacion.split(',') if id.strip()]
+            
             # Si no hay filtros, mostrar últimos 50 registros
-            if not order_ids and not prealert_ids and search_account == "Todos":
+            if not order_ids and not prealert_ids and not asignacion_ids and search_account == "Todos":
                 st.info("Mostrando últimos 50 registros (sin filtros específicos)")
                 result = supabase.table('consolidated_orders').select('*').order('id', desc=True).limit(50).execute()
             else:
@@ -2212,6 +2226,15 @@ def main():
                         base_query = base_query.in_('prealert_id', expanded_prealert_ids)
                         st.info(f"🔍 Buscando {len(prealert_ids)} Prealert IDs: {', '.join(prealert_ids[:5])}{'...' if len(prealert_ids) > 5 else ''}")
                 
+                # Aplicar filtros de asignacion_ids si existen
+                if asignacion_ids:
+                    if len(asignacion_ids) == 1:
+                        base_query = base_query.eq('asignacion', asignacion_ids[0])
+                        st.info(f"🔍 Buscando Asignación: {asignacion_ids[0]}")
+                    else:
+                        base_query = base_query.in_('asignacion', asignacion_ids)
+                        st.info(f"🔍 Buscando {len(asignacion_ids)} Asignaciones: {', '.join(asignacion_ids[:5])}{'...' if len(asignacion_ids) > 5 else ''}")
+                
                 # Aplicar filtro de account si está seleccionado
                 if search_account != "Todos":
                     base_query = base_query.eq('account_name', search_account)
@@ -2224,7 +2247,7 @@ def main():
                 st.success(f"✅ Encontrados {len(search_df)} registros")
                 
                 # Mostrar columnas más importantes primero
-                important_cols = ['id', 'order_id', 'prealert_id', 'account_name', 'client_first_name', 
+                important_cols = ['id', 'order_id', 'prealert_id', 'asignacion', 'account_name', 'client_first_name', 
                                 'client_last_name', 'title', 'quantity', 'unit_price', 'date_created']
                 
                 # Reordenar columnas para mostrar las importantes primero
